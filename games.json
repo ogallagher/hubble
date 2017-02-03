@@ -1,0 +1,52 @@
+[
+    {
+      "name": "Chess",
+      "authors": ["Icon Finder","CDN3"],
+      "description": "Just image of a pawn.",
+      "tags": [],
+      "categories": [],
+      "rating": "4",
+      "featured": "n",
+      "url": "https://cdn3.iconfinder.com/data/icons/brain-games/1042/Chess-Game.png"
+    },
+    {
+      "name": "Google",
+      "authors": ["Alphabet Co."],
+      "description": "Link to Google's search engine.",
+      "tags": [],
+      "categories": [],
+      "rating": "5",
+      "featured": "n",
+      "url": "https://www.google.com/"
+    },
+    {
+      "name": "Shuffle",
+      "authors": ["Owen Gallagher"],
+      "description": "Shuffle is an original online strategy board game. Players move their pieces at the same time, trying to eliminate the others' pieces and be the last one left standing.",
+      "tags": [
+        "strategy",
+        "multiplayer",
+        "2D",
+        "board",
+        "chess",
+        "turn-based"
+      ],
+      "categories": [
+        "strategy",
+        "multiplayer"
+      ],
+      "rating": "5",
+      "featured": "y",
+      "url": "http://shuffle-ojpgapps.rhcloud.com/"
+    },
+    {
+      "name": "Tic Tac Toe",
+      "authors": ["Icon Finder","CDN3"],
+      "description": "Just image of a tic-tac-toe board.",
+      "tags": [],
+      "categories": [],
+      "rating": "1",
+      "featured": "n",
+      "url": "https://cdn3.iconfinder.com/data/icons/brain-games/1042/Tic-Tac-Toe-Game-grey.png"
+    }
+]

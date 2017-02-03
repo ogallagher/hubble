@@ -1,5 +1,5 @@
 {
-  "name": "Game Hub",
+  "name": “hubble”,
   "version": "1.0.0",
   "description": "The website is just an interactive JavaScript program with links to games.",
   "main": "server.js",
