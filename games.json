@@ -23,7 +23,7 @@
         {
             "name": "Karnage",
             "authors": ["Sidney de Vries"],
-            "description": "A fun multiplayer shooting game. You are placed in an arena with a few other players; kill and don't die. WASD+mouse controls.",
+            "description": "A fun multiplayer shooting game. You are placed in an arena with a few other players. Kill and don't die. WASD+mouse controls.",
             "tags": ["3d","shooting","action","io","reflexes","multiplayer"],
             "categories": ["reflexes","multiplayer","arcade"],
             "rating": "5",
@@ -63,7 +63,7 @@
         {
             "name": "Wings",
             "authors": ["Anonymous Group"],
-            "description": "Each player is a worm. Guide your worm with the mouse or arrow keys to eat and grow. If you crash into another's body, you die.",
+            "description": "Each player is a plane. Use the mouse to steer and shoot. Lots of upgrades. Shoot down other planes and stay alive to move up the leaderboard.",
             "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
             "categories": ["arcade","multiplayer","reflexes"],
             "rating": "4",
