@@ -9,19 +9,26 @@ var games = require("./games.json");
  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
  
  games is arranged lexicographically by different terms.
+ 
  games.byName lists the games according to name
  
      Chess:         03
      Google:        07
-     Shuffle:       19
+     Karnage:       11
+     Shuffle:       19 08
+     Slither:       19 12
      Tic Tac Toe:   20
+     Wings:         23
  
  games.byTags lists the games according to the averages of the tags.
  
-     3 Tic Tac Toe:  06.6666
+     5 Tic Tac Toe:  06.6667
      0 Chess:        08.0000
-     2 Shuffle:      14.3333
+     4 Slither:      11.6667
+     6 Wings:        12.2857
+     3 Shuffle:      14.3333
      1 Google:       17.5000
+     2 Karnage:      18.1667
  
 */
 

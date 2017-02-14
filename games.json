@@ -1,62 +1,104 @@
 {
     "byName": [
         {
-          "name": "Chess",
-          "authors": ["Icon Finder","CDN3"],
-          "description": "Just image of a pawn.",
-          "tags": ["strategy","chess","boring"],
-          "categories": ["strategy"],
-          "rating": "4",
-          "featured": "n",
-          "url": "https://cdn3.iconfinder.com/data/icons/brain-games/1042/Chess-Game.png"
+            "name": "Chess",
+            "authors": ["Icon Finder","CDN3"],
+            "description": "Just image of a pawn.",
+            "tags": ["strategy","chess","boring"],
+            "categories": ["strategy"],
+            "rating": "4",
+            "featured": "n",
+            "url": "https://cdn3.iconfinder.com/data/icons/brain-games/1042/Chess-Game.png"
         },
         {
-          "name": "Google",
-          "authors": ["Alphabet Co"],
-          "description": "Link to Google's search engine.",
-          "tags": ["practical","search"],
-          "categories": [],
-          "rating": "5",
-          "featured": "n",
-          "url": "https://www.google.com/"
+            "name": "Google",
+            "authors": ["Alphabet Co"],
+            "description": "Link to Google's search engine.",
+            "tags": ["practical","search"],
+            "categories": [],
+            "rating": "5",
+            "featured": "n",
+            "url": "https://www.google.com/"
         },
         {
-          "name": "Shuffle",
-          "authors": ["Owen Gallagher"],
-          "description": "Shuffle is an original online strategy board game. Players move their pieces at the same time, trying to eliminate the others' pieces and be the last one left standing.",
-          "tags": ["strategy","multiplayer","2D","board","chess","turn-based"],
-          "categories": ["strategy","multiplayer"],
-          "rating": "5",
-          "featured": "y",
-          "url": "http://shuffle-ojpgapps.rhcloud.com/"
+            "name": "Karnage",
+            "authors": ["Sidney de Vries"],
+            "description": "A fun multiplayer shooting game. You are placed in an arena with a few other players; kill and don't die. WASD+mouse controls.",
+            "tags": ["3d","shooting","action","io","reflexes","multiplayer"],
+            "categories": ["reflexes","multiplayer","arcade"],
+            "rating": "5",
+            "featured": "y",
+            "url": "https://karnage.io/"
         },
         {
-          "name": "Tic Tac Toe",
-          "authors": ["Icon Finder","CDN3"],
-          "description": "Just image of a tic-tac-toe board.",
-          "tags": ["luck","easy","classic"],
-          "categories": [],
-          "rating": "1",
-          "featured": "n",
-          "url": "https://cdn3.iconfinder.com/data/icons/brain-games/1042/Tic-Tac-Toe-Game-grey.png"
+            "name": "Shuffle",
+            "authors": ["Owen Gallagher"],
+            "description": "Shuffle is an original online strategy board game. Players move their pieces at the same time, trying to eliminate the others' pieces and be the last one left standing.",
+            "tags": ["strategy","multiplayer","2d","board","chess","turn-based"],
+            "categories": ["strategy","multiplayer"],
+            "rating": "5",
+            "featured": "y",
+            "url": "http://shuffle-ojpgapps.rhcloud.com/"
+        },
+        {
+            "name": "Slither",
+            "authors": ["Anonymous Group"],
+            "description": "Each player is a worm. Guide your worm with the mouse or arrow keys to eat and grow. If you crash into another's body, you die.",
+            "tags": ["multiplayer","action","snake","io","survival","infinite"],
+            "categories": ["arcade","multiplayer"],
+            "rating": "5",
+            "featured": "y",
+            "url": "http://slither.io/"
+        },
+        {
+            "name": "Tic Tac Toe",
+            "authors": ["Icon Finder","CDN3"],
+            "description": "Just image of a tic-tac-toe board.",
+            "tags": ["luck","easy","classic"],
+            "categories": [],
+            "rating": "1",
+            "featured": "n",
+            "url": "https://cdn3.iconfinder.com/data/icons/brain-games/1042/Tic-Tac-Toe-Game-grey.png"
+        },
+        {
+            "name": "Wings",
+            "authors": ["Anonymous Group"],
+            "description": "Each player is a worm. Guide your worm with the mouse or arrow keys to eat and grow. If you crash into another's body, you die.",
+            "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
+            "categories": ["arcade","multiplayer","reflexes"],
+            "rating": "4",
+            "featured": "y",
+            "url": "http://wings.io/"
         }
     ],
     "byTags": [
         {
             "tags": ["luck","easy","classic"],
-            "index": "3"
+            "index": "5"
         },
         {
             "tags": ["strategy","chess","boring"],
             "index": "0"
         },
         {
-            "tags": ["strategy","multiplayer","2D","board","chess","turn-based"],
-            "index": "2"
+            "tags": ["multiplayer","action","snake","io","survival","infinite"],
+            "index": "4"
+        },
+        {
+            "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
+            "index": "6"
+        },
+        {
+            "tags": ["strategy","multiplayer","2d","board","chess","turn-based"],
+            "index": "3"
         },
         {
             "tags": ["practical","search"],
             "index": "1"
+        },
+        {
+            "tags": ["3d","shooting","action","io","reflexes","multiplayer"],
+            "index": "2"
         }
     ]
 }
