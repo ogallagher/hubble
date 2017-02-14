@@ -31,7 +31,7 @@
             "name": "Shuffle",
             "authors": ["Owen Gallagher"],
             "description": "Shuffle is an original online strategy board game. Players move their pieces at the same time, trying to eliminate the others' pieces and be the last one left standing.",
-            "tags": ["strategy","multiplayer","2d","board","chess","turn-based"],
+            "tags": ["strategy","multiplayer","2d","board","chess","turnbased"],
             "rating": "5",
             "featured": "y",
             "url": "http://shuffle-ojpgapps.rhcloud.com/"
@@ -82,7 +82,7 @@
             "index": "6"
         },
         {
-            "tags": ["strategy","multiplayer","2d","board","chess","turn-based"],
+            "tags": ["strategy","multiplayer","2d","board","chess","turnbased"],
             "index": "3"
         },
         {
