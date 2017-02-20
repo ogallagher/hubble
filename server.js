@@ -12,22 +12,22 @@ var games = require("./games.json");
  
  games.byName lists the games according to name
  
-     Chess:         03
-     Google:        07
+     Doodle Jump:   04
+     Flappy Bird:   06
      Karnage:       11
      Shuffle:       19 08
      Slither:       19 12
-     Tic Tac Toe:   20
      Wings:         23
+     Zball 5:       26
  
  games.byTags lists the games according to the averages of the tags.
  
-     5 Tic Tac Toe:  06.6667
-     0 Chess:        08.0000
      4 Slither:      11.6667
-     6 Wings:        12.2857
+     6 Zball 5:      12.1667
+     5 Wings:        12.2857
      3 Shuffle:      14.3333
-     1 Google:       17.5000
+     0 Doodle Jump:  14.5000
+     1 Flappy Bird:  15.1429
      2 Karnage:      18.1667
  
 */

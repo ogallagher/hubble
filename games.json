@@ -1,22 +1,22 @@
 {
     "byName": [
         {
-            "name": "Chess",
-            "authors": ["Icon Finder","CDN3"],
-            "description": "Just image of a pawn.",
-            "tags": ["strategy","chess","boring"],
+            "name": "Doodle Jump",
+            "authors": ["Lima Sky","Cloud Games"],
+            "description": "Tap to shoot, tilt to move horizontally. Avoid/shoot enemies, get powerups, and don't fall!",
+            "tags": ["infinite","arcade","singleplayer","2d","simple","platforms","jumping","mobile"],
             "rating": "4",
-            "featured": "n",
-            "url": "https://cdn3.iconfinder.com/data/icons/brain-games/1042/Chess-Game.png"
+            "featured": "y",
+            "url": "http://cloudgames.com/games/html5/doodle-jump-new-en-s-iga-cloud/index.html?pub=10&popup=1&ath="
         },
         {
-            "name": "Google",
-            "authors": ["Alphabet Co"],
-            "description": "Link to Google's search engine.",
-            "tags": ["practical","search"],
-            "rating": "5",
+            "name": "Flappy Bird",
+            "authors": ["Nguyen Ha Dong","dotGEARS"],
+            "description": "Tap to keep your bird in the air. Pass between the pipes without hitting them.",
+            "tags": ["infinite","arcade","singleplayer","2d","simple","precision","mobile"],
+            "rating": "2",
             "featured": "n",
-            "url": "https://www.google.com/"
+            "url": "http://m.silvergames.com/game/flappy-bird/"
         },
         {
             "name": "Karnage",
@@ -24,7 +24,7 @@
             "description": "A fun multiplayer shooting game. You are placed in an arena with a few other players. Kill and don't die. WASD+mouse controls.",
             "tags": ["3d","shooting","action","io","reflexes","multiplayer"],
             "rating": "5",
-            "featured": "y",
+            "featured": "n",
             "url": "http://karnage.io/"
         },
         {
@@ -41,18 +41,9 @@
             "authors": ["Anonymous Group"],
             "description": "Each player is a worm. Guide your worm with the mouse or arrow keys to eat and grow. If you crash into another's body, you die.",
             "tags": ["multiplayer","action","snake","io","survival","infinite"],
-            "rating": "5",
+            "rating": "4",
             "featured": "y",
             "url": "http://slither.io/"
-        },
-        {
-            "name": "Tic Tac Toe",
-            "authors": ["Icon Finder","CDN3"],
-            "description": "Just image of a tic-tac-toe board.",
-            "tags": ["luck","easy","classic"],
-            "rating": "1",
-            "featured": "n",
-            "url": "https://cdn3.iconfinder.com/data/icons/brain-games/1042/Tic-Tac-Toe-Game-grey.png"
         },
         {
             "name": "Wings",
@@ -60,33 +51,42 @@
             "description": "Each player is a plane. Use the mouse to steer and shoot. Lots of upgrades. Shoot down other planes and stay alive to move up the leaderboard.",
             "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
             "rating": "4",
-            "featured": "y",
+            "featured": "n",
             "url": "http://wings.io/"
+        }
+        {
+            "name": "ZBall 5",
+            "authors": ["Cloud Games"],
+            "description": "You are a red ball on a zigzagging path. Collect meet chunks to increase score by tapping to glide left/right. Dont fall off the path.",
+            "tags": ["singleplayer","infinite","arcade","precision","orthogonal","mobile"],
+            "rating": "2",
+            "featured": "n",
+            "url": "http://cloudgames.com/games/html5/zball5-new-en-s-iga-cloud/index.html?pub=10"
         }
     ],
     "byTags": [
-        {
-            "tags": ["luck","easy","classic"],
-            "index": "5"
-        },
-        {
-            "tags": ["strategy","chess","boring"],
-            "index": "0"
-        },
         {
             "tags": ["multiplayer","action","snake","io","survival","infinite"],
             "index": "4"
         },
         {
-            "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
+            "tags": ["singleplayer","infinite","arcade","precision","orthogonal","mobile"],
             "index": "6"
+        },
+        {
+            "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
+            "index": "5"
         },
         {
             "tags": ["strategy","multiplayer","2d","board","chess","turnbased"],
             "index": "3"
         },
         {
-            "tags": ["practical","search"],
+            "tags" : ["infinite","arcade","singleplayer","2d","simple","platforms","jumping","mobile"],
+            "index": "0"
+        },
+        {
+            "tags" : ["infinite","arcade","singleplayer","2d","simple","precision","mobile"],
             "index": "1"
         },
         {
