@@ -10,7 +10,7 @@ var games = require("./games.json");
  
  games is arranged lexicographically by different terms.
  
- games.byName lists the games according to name
+ games.byName lists the games according to game.name
  
      Doodle Jump:   04
      Flappy Bird:   06
@@ -20,15 +20,16 @@ var games = require("./games.json");
      Wings:         23
      Zball 5:       26
  
- games.byTags lists the games according to the averages of the tags.
+ games.byRating lists the games according to game.rating
  
-     4 Slither:      11.6667
-     6 Zball 5:      12.1667
-     5 Wings:        12.2857
-     3 Shuffle:      14.3333
-     0 Doodle Jump:  14.5000
-     1 Flappy Bird:  15.1429
-     2 Karnage:      18.1667
+     2 Karnage:         5
+     3 Shuffle:         5
+     0 Doodle Jump:     4
+     4 Slither:         4
+     5 Wings:           3
+     1 Flappy Bird:     2
+     6 Zball 5:         2
+ 
  
 */
 
@@ -89,49 +90,14 @@ app.get("/search", function(request,response) {
                 }
             
                 //tag search
-                start = alphabet.indexOf(searchTerms[i].charAt(0));
-                start = Math.round((start / alphabet.length) * games.byTags.length);
-                away = 0;
-                stop = false;
-                stopP = false;
-                stopN = false;
+                for (var r=0; resultTags.length < RESULT_MAX && r<games.byRating.length; r++) {
+                    var tagMatch = false;
         
-                while (resultTags.length < RESULT_MAX && !stop) {
-                    if (!stopP && start+away < games.byTags.length) {
-                        var tagMatch = false;
-        
-                        for (var t=0; !tagMatch && t<games.byTags[start+away].tags.length; t++) {
-                            if (games.byTags[start+away].tags[t].indexOf(searchTerms[i]) > -1) {
-                                resultTags.push(games.byName[games.byTags[start+away].index]);
-                                tagMatch = true;
-                            }
+                    for (var t=0; !tagMatch && t<games.byRating[r].tags.length; t++) {
+                        if (games.byRating[r].tags[t].indexOf(searchTerms[i]) > -1) {
+                            resultTags.push(games.byName[games.byRating[r].index]);
+                            tagMatch = true;
                         }
-                    }
-                    else {
-                        stopP = true;
-                    }
-        
-                    if (away > 0) {
-                        if (!stopN && start-away >= 0) {
-                            var tagMatch = false;
-                            
-                            for (var t=0; !tagMatch && t<games.byTags[start-away].tags.length; t++) {
-                                if (games.byTags[start-away].tags[t].indexOf(searchTerms[i]) > -1) {
-                                    resultTags.push(games.byName[games.byTags[start-away].index]);
-                                    tagMatch = true;
-                                }
-                            }
-                        }
-                        else {
-                            stopN = true;
-                        }
-                    }
-        
-                    if (start+away < games.byTags.length-1 || start-away > 0) {
-                        away++;
-                    }
-                    else {
-                        stop = true;
                     }
                 }
             }

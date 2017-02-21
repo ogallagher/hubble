@@ -50,7 +50,7 @@
             "authors": ["Anonymous Group"],
             "description": "Each player is a plane. Use the mouse to steer and shoot. Lots of upgrades. Shoot down other planes and stay alive to move up the leaderboard.",
             "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
-            "rating": "4",
+            "rating": "3",
             "featured": "n",
             "url": "http://wings.io/"
         },
@@ -64,18 +64,10 @@
             "url": "http://cloudgames.com/games/html5/zball5-new-en-s-iga-cloud/index.html?pub=10"
         }
     ],
-    "byTags": [
+    "byRating": [
         {
-            "tags": ["multiplayer","action","snake","io","survival","infinite"],
-            "index": "4"
-        },
-        {
-            "tags": ["singleplayer","infinite","arcade","precision","orthogonal","mobile"],
-            "index": "6"
-        },
-        {
-            "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
-            "index": "5"
+            "tags": ["3d","shooting","action","io","reflexes","multiplayer"],
+            "index": "2"
         },
         {
             "tags": ["strategy","multiplayer","2d","board","chess","turnbased"],
@@ -86,12 +78,20 @@
             "index": "0"
         },
         {
+            "tags": ["multiplayer","action","snake","io","survival","infinite"],
+            "index": "4"
+        },
+        {
+            "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
+            "index": "5"
+        },
+        {
             "tags" : ["infinite","arcade","singleplayer","2d","simple","precision","mobile"],
             "index": "1"
         },
         {
-            "tags": ["3d","shooting","action","io","reflexes","multiplayer"],
-            "index": "2"
+            "tags": ["singleplayer","infinite","arcade","precision","orthogonal","mobile"],
+            "index": "6"
         }
     ]
 }
