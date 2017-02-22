@@ -3,7 +3,7 @@
         {
             "name": "Doodle Jump",
             "authors": ["Lima Sky","Cloud Games"],
-            "description": "Tap to shoot, tilt to move horizontally. Avoid/shoot enemies, get powerups, and don't fall!",
+            "description": "Tap to shoot, tilt to move horizontally. Avoid and shoot enemies, get powerups, and don't fall!",
             "tags": ["infinite","arcade","singleplayer","2d","simple","platforms","jumping","mobile"],
             "rating": "4",
             "featured": "y",
@@ -57,7 +57,7 @@
         {
             "name": "ZBall 5",
             "authors": ["Cloud Games"],
-            "description": "You are a red ball on a zigzagging path. Collect meet chunks to increase score by tapping to glide left/right. Dont fall off the path.",
+            "description": "You are a red ball on a zigzagging path. Collect meet chunks to increase score by tapping to glide left and right. Dont fall off the path.",
             "tags": ["singleplayer","infinite","arcade","precision","orthogonal","mobile"],
             "rating": "2",
             "featured": "n",
