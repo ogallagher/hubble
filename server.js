@@ -61,7 +61,7 @@ app.get("/search", function(request,response) {
             
                 while (resultNames.length < RESULT_MAX && !stop) {
                     if (!stopP && start+away < games.byName.length) {
-                        if (games.byName[start+away].name.toLowerCase().indexOf(searchTerms[i]) > -1) {
+                        if (games.byName[start+away].name.toLowerCase().indexOf(searchTerms[i]) > -1 && resultNames.indexOf(games.byName[start+away]) == -1) {
                             resultNames.push(games.byName[start+away]);
                         }
                     }
@@ -71,7 +71,7 @@ app.get("/search", function(request,response) {
             
                     if (away > 0) {
                         if (!stopN && start-away >= 0) {
-                            if (games.byName[start-away].name.toLowerCase().indexOf(searchTerms[i]) > -1) {
+                            if (games.byName[start-away].name.toLowerCase().indexOf(searchTerms[i]) > -1 && resultNames.indexOf(games.byName[start-away]) == -1) {
                                 resultNames.push(games.byName[start-away]);
                             }
                         }
@@ -94,7 +94,7 @@ app.get("/search", function(request,response) {
                     var tagMatch = false;
         
                     for (var t=0; !tagMatch && t<games.byRating[r].tags.length; t++) {
-                        if (games.byRating[r].tags[t].indexOf(searchTerms[i]) > -1) {
+                        if (games.byRating[r].tags[t].indexOf(searchTerms[i]) > -1 && resultTags.indexOf(games.byName[games.byRating[r].index]) == -1) {
                             resultTags.push(games.byName[games.byRating[r].index]);
                             tagMatch = true;
                         }
