@@ -7,12 +7,13 @@
 √ √ change bubble.displayText()√ add more games that are mobile-compatible and more varied in type> server.addGame() function:> > add to games.byName[] lexicographically> > add to games.byRating[] according to current game.rating√ client: mobile: in displayText(), enable box movement to all 4 corners of the view> enable registration and log-in> > client: add register bubble> > client: add username variable> > client: if username == "", prompt for the user to register or log in.> > client: register() function: username, password, email; send email;> > client: login() function: get username, password; send to server for verification; upon positive response, continue;√ if bubble.link is a dialogue box, and if bubble.link.length < SEAL_MAX, display bubble.link around the bottom like label.name, but without grow/shrink and disappear
 √ fix authors bubble to display each author on a separate branch
 > don’t don’t display bubble.link in the corner if already displayed around the bubble
-• fix display of bubble.label.name in mobile if touchIsDown
-• √ create client-wide and mobile-wide variable: hovering
-• • hovering = true, if (bubble.label.name is shown && distance(bubble,cursor) < bubble.size*0.5 && touchIsDown)
-• • background darkens
-• • increase circumference for bubble.label.name display
-• • other bubbles darken
+… fix display of bubble.label.name in mobile if touchIsDown
+… √ create client-wide and mobile-wide variable: hovering
+… √ hovering = true, if (distance(bubble,cursor) < bubble.size*0.5 && touches.length > 0)
+… √ background darkens
+… √ increase circumference for bubble.label.name display
+… √ create bubble.touched variable (to see which bubble is activating hovering)
+… √ other bubbles darken
 √ server: fix search functions to not return repeat games
 > category icons
 ¿ what to do with author bubbles ?
