@@ -15,7 +15,13 @@
 √ √ create bubble.touched variable (to see which bubble is activating hovering)
 √ √ other bubbles darken
 √ server: fix search functions to not return repeat games
-> category icons
+… category icons
+> √ version
+> √ multiplayer
+> > racing
+> > strategy
+> > action
+> > puzzle
 ¿ what to do with author bubbles ?
 ¿ ¿ link to author’s website ?
-… if bubble.label.name is too long, show until NAME_MAX
+√ if bubble.label.name is too long, show until NAME_MAX
