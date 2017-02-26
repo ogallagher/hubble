@@ -18,4 +18,4 @@
 > category icons
 ¿ what to do with author bubbles ?
 ¿ ¿ link to author’s website ?
-> if bubble.label.name is too long, show until NAME_MAX
+… if bubble.label.name is too long, show until NAME_MAX
