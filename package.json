@@ -1,14 +1,21 @@
 {
-  "name": “hubble”,
+  "name": "hubble",
   "version": "1.0.0",
-  "description": "The website is just an interactive JavaScript program with links to games.",
+  "description": "The website is an interactive JavaScript program with links to games.",
   "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Owen Gallagher",
-  "license": "ISC",
   "dependencies": {
     "express": "^4.13.4"
-  }
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://5820a85a7628e1c6f5000142@hubble-ojpgapps.rhcloud.com/~/git/hubble.git/"
+  },
+  "keywords": [],
+  "author": “Owen Gallagher“,
+  "license": "ISC"
 }

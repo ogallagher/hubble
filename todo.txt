@@ -4,7 +4,8 @@
 √ √ page splitting character will denote multiple pages
 √ √ bubble.book stores many-paged dialogue boxes
 √ √ update bubble.book.bookMark when bubble.select() is called and bubble.selected is true
-√ √ change bubble.displayText()√ add more games that are mobile-compatible and more varied in type> server.addGame() function:> > add to games.byName[] lexicographically> > add to games.byRating[] according to current game.rating√ client: mobile: in displayText(), enable box movement to all 4 corners of the view> enable registration and log-in> > client: add register bubble> > client: add address variable> > client: if address == "", prompt for the user to register or log in.> > client: register() function: email, password; send email;> > client: login() function: get email, password; send to server for verification; upon positive response, continue;
+√ √ change bubble.displayText()√ add more games that are mobile-compatible and more varied in type> server.addGame() function:> > add to games.byName[] lexicographically> > add to games.byRating[] according to current game.rating√ client: mobile: in displayText(), enable box movement to all 4 corners of the view> enable registration and log-in> > client: add register bubble> > client: add address variable> > client: if address == "", prompt for the user to register or log in.> > client: register() function: email, password; send email;
+> > server: use nodemailer.js to send the email to a specified destination account (origin server = gmail.com)> > client: login() function: get email, password; send to server for verification; upon positive response, continue;
 > > server: handle /register and /login html requests
 > > server: add users.json to store usernames, emails, and passwords√ if bubble.link is a dialogue box, and if bubble.link.length < SEAL_MAX, display bubble.link around the bottom like label.name, but without grow/shrink and disappear
 √ fix authors bubble to display each author on a separate branch
@@ -29,3 +30,5 @@
 ¿ ¿ link to author’s website ?
 ¿ ¿ server: add authors.json with associated information ?
 √ if bubble.label.name is too long, show until NAME_MAX
+√ mobile: only call home.select() if tapped (not dragged and lifted)
+√ mobile: if background tapped, be able to go back to home without closing all branches
