@@ -1,7 +1,21 @@
 var express = require("express");
 var app = express();
 
+var nodemailer = require("nodemailer");
+var transporter = nodemailer.createTransport({
+                                             service: "gmail",
+                                             auth: {
+                                                user: "hubbleojpgapps@gmail.com",
+                                                pass: "pBC-6DT-hwN-UxG"
+                                             }
+                                             });
+var emailTemplate = {
+                    from: "hubble <hubbleojpgapps@gmail.com>",
+                    subject: "Welcome to hubble"
+                    };
+
 var games = require("./games.json");
+var accounts = require("./accounts.json");
 /*
  
  ORDER
@@ -112,10 +126,6 @@ app.get("/search", function(request,response) {
         
         });
 
-app.get("/category", function(request,response) {
-        //search games.json by categories key
-        });
-
 app.get("/featured", function(request,response) {
         //search games by game.featured
         var result = [];
@@ -127,6 +137,78 @@ app.get("/featured", function(request,response) {
         }
         
         response.send(JSON.stringify(result));
+        });
+
+app.get("/register", function(request, response) {
+        //check if user already exists, check if email is valid, and return the appropriate messages
+        var newAccount = request.query.account;
+        var foundAddress = false;
+        var result = {
+                        message: ""
+                     };
+        
+        //check if user already exists
+        for (var i=0; i<accounts.length && !foundAddress; i++) {
+            if (newAccount.address == accounts[i].address) {
+                result.message = "ERROR:repeat";
+                foundAddress = true;
+            }
+        }
+        
+        //check if email is valid
+        if (!foundAddress) {
+            transporter.sendMail({
+                                     from: emailTemplate.from,
+                                     to: newAccount.address,
+                                     subject: emailTemplate.subject,
+                                     text: "Hi " + newAccount.address + ",\n\nWelcome to hubble! Since you've created an account, you will now be able to rate games and suggest the addition of new ones.\n\nSo you don't forget, here is your account information:\n\tUsername: " + newAccount.address + "\n\tPassword: " + newAccount.password + "\n\nThanks for your help!\nhttp://hubble-ojpgapps.rhcloud.com/"
+                                 },
+                                 function (error, info) {
+                                     if (error) {
+                                         result.message = "ERROR:address";
+                                     }
+                                     else {
+                                        result.message = "SUCCESS";
+                                        accounts.push(newAccount);
+                                     }
+                                     
+                                     response.send(JSON.stringify(result));
+                                 });
+        }
+        else {
+            response.send(JSON.stringify(result));
+        }
+        });
+
+app.get("/login", function (request, response) {
+        //check that user is in accounts.json, check that accounts[i].password == proposedAccount.password, and return the appropriate messages
+        
+        var proposedAccount = request.query.account;
+        var foundAddress = -1;
+        var result = {
+                      message: ""
+                      };
+        
+        for (var i=0; i<accounts.length && foundAddress == -1; i++) {
+            if (proposedAccount.address == accounts[i].address) {
+                foundAddress = i;
+            }
+        }
+        
+        if (foundAddress == -1) {
+            result.message = "ERROR:nonexistent";
+            response.send(JSON.stringify(result));
+        }
+        else {
+            if (proposedAccount.password == accounts[i].password) {
+                result.message = "SUCCESS";
+            }
+            else {
+                result.message = "ERROR:password";
+            }
+        
+            response.send(JSON.stringify(result));
+        }
         });
 
 var server = app.listen(port,ip);
