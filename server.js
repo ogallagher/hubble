@@ -11,7 +11,7 @@ var transporter = nodemailer.createTransport({
                                              });
 var emailTemplate = {
                     from: "hubble <hubbleojpgapps@gmail.com>",
-                    subject: "Welcome to hubble"
+                    subject: "Hubble Account Information"
                     };
 
 var games = require("./games.json");
@@ -150,7 +150,7 @@ app.get("/register", function(request, response) {
         //check if user already exists
         for (var i=0; i<accounts.length && !foundAddress; i++) {
             if (newAccount.address == accounts[i].address) {
-                result.message = "ERROR:repeat";
+                result.message = "ERROR:many";
                 foundAddress = true;
             }
         }
@@ -165,11 +165,15 @@ app.get("/register", function(request, response) {
                                  },
                                  function (error, info) {
                                      if (error) {
-                                         result.message = "ERROR:address";
+                                         result.message = "ERROR:email";
                                      }
                                      else {
                                         result.message = "SUCCESS";
+                                 
+                                        // add new account to accounts[]
                                         accounts.push(newAccount);
+                                 
+                                        //HERE: update accounts.json to match accounts[]
                                      }
                                      
                                      response.send(JSON.stringify(result));
@@ -196,7 +200,7 @@ app.get("/login", function (request, response) {
         }
         
         if (foundAddress == -1) {
-            result.message = "ERROR:nonexistent";
+            result.message = "ERROR:gone";
             response.send(JSON.stringify(result));
         }
         else {
@@ -204,7 +208,7 @@ app.get("/login", function (request, response) {
                 result.message = "SUCCESS";
             }
             else {
-                result.message = "ERROR:password";
+                result.message = "ERROR:code";
             }
         
             response.send(JSON.stringify(result));
