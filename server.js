@@ -14,6 +14,8 @@ var emailTemplate = {
                     subject: "Hubble Account Information"
                     };
 
+var fs = require("fs");
+
 var games = require("./games.json");
 var accounts = require("./accounts.json");
 /*
@@ -165,18 +167,25 @@ app.get("/register", function(request, response) {
                                  },
                                  function (error, info) {
                                      if (error) {
-                                         result.message = "ERROR:email";
+                                        result.message = "ERROR:email";
+                                 
+                                        response.send(JSON.stringify(result));
                                      }
                                      else {
                                         result.message = "SUCCESS";
                                  
-                                        // add new account to accounts[]
+                                        //add new account to accounts[]
                                         accounts.push(newAccount);
                                  
-                                        //HERE: update accounts.json to match accounts[]
+                                        //update accounts.json to match accounts[]
+                                        fs.writeFile("accounts.json", JSON.stringify(accounts), function(err) {
+                                                                                                               if (err) {
+                                                                                                                   throw err;
+                                                                                                                   result.message = "ERROR:write";
+                                                                                                               }
+                                                                                                               response.send(JSON.stringify(result));
+                                                                                                               });
                                      }
-                                     
-                                     response.send(JSON.stringify(result));
                                  });
         }
         else {
