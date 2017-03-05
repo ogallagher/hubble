@@ -204,7 +204,7 @@ app.get("/login", function (request, response) {
             response.send(JSON.stringify(result));
         }
         else {
-            if (proposedAccount.password == accounts[i].password) {
+            if (proposedAccount.password == accounts[foundAddress].password) {
                 result.message = "SUCCESS";
             }
             else {
