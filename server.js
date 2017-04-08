@@ -24,8 +24,6 @@ var accounts = require("./accounts.json");
  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  0  1  2  3  4  5  6  7  8  9
  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
  
- games is arranged lexicographically by different terms.
- 
  games.byName lists the games according to game.name
  
      Doodle Jump:   04
@@ -46,7 +44,6 @@ var accounts = require("./accounts.json");
      1 Flappy Bird:     2
      6 Zball 5:         2
  
- 
 */
 
 var port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
@@ -59,62 +56,24 @@ app.use(express.static("public"));
 
 app.get("/search", function(request,response) {
         //search games.json by name and tags
-        
         var searchTerms = request.query.terms;
         var resultNames = [];
         var resultTags = [];
         
-        for (var i=0; i<searchTerms.length; i++) {
+        for (var i=0; i<searchTerms.length && (resultNames.length<RESULT_MAX || resultTags.length<RESULT_MAX); i++) {
             if (searchTerms[i].length > 0) {
                 //name search
-                var start = alphabet.indexOf(searchTerms[i].charAt(0));
-                start = Math.round((start / alphabet.length) * games.byName.length);
-            
-                var away = 0;
-                var stop = false;
-                var stopP = false;
-                var stopN = false;
-            
-                while (resultNames.length < RESULT_MAX && !stop) {
-                    if (!stopP && start+away < games.byName.length) {
-                        if (games.byName[start+away].name.toLowerCase().indexOf(searchTerms[i]) > -1 && resultNames.indexOf(games.byName[start+away]) == -1) {
-                            resultNames.push(games.byName[start+away]);
-                        }
-                    }
-                    else {
-                        stopP = true;
-                    }
-            
-                    if (away > 0) {
-                        if (!stopN && start-away >= 0) {
-                            if (games.byName[start-away].name.toLowerCase().indexOf(searchTerms[i]) > -1 && resultNames.indexOf(games.byName[start-away]) == -1) {
-                                resultNames.push(games.byName[start-away]);
-                            }
-                        }
-                        else {
-                            stopN = true;
-                        }
-                    }
-            
-            
-                    if (start+away < games.byName.length-1 || start-away > 0) {
-                        away++;
-                    }
-                    else {
-                        stop = true;
-                    }
-                }
-            
-                //tag search
-                for (var r=0; resultTags.length < RESULT_MAX && r<games.byRating.length; r++) {
-                    var tagMatch = false;
+                var gamesByName = searchGamesByName(searchTerms[i],RESULT_MAX-resultNames.length,true);
         
-                    for (var t=0; !tagMatch && t<games.byRating[r].tags.length; t++) {
-                        if (games.byRating[r].tags[t].indexOf(searchTerms[i]) > -1 && resultTags.indexOf(games.byName[games.byRating[r].index]) == -1) {
-                            resultTags.push(games.byName[games.byRating[r].index]);
-                            tagMatch = true;
-                        }
-                    }
+                for (var g=0; g<gamesByName.length; g++) {
+                    resultNames.push(gamesByName[g]);
+                }
+        
+                //tag search
+                var gamesByTag = searchGamesByTag(searchTerms[i],RESULT_MAX-resultTags.length);
+        
+                for (var g=0; g<gamesByName.length; g++) {
+                    resultTags.push(gamesByTag[g]);
                 }
             }
         }
@@ -143,7 +102,11 @@ app.get("/featured", function(request,response) {
 
 app.get("/register", function(request, response) {
         //check if user already exists, check if email is valid, and return the appropriate messages
-        var newAccount = request.query.account;
+        var newAccount = {
+            address: request.query.account.address,
+            password: request.query.account.password,
+            reviews: []
+        }
         var foundAddress = false;
         var result = {
                         message: ""
@@ -174,17 +137,20 @@ app.get("/register", function(request, response) {
                                      else {
                                         result.message = "SUCCESS";
                                  
+                                        //encrypt password for newAccount
+                                        newAccount.password = encrypt(newAccount.password);
+                                 
                                         //add new account to accounts[]
                                         accounts.push(newAccount);
                                  
                                         //update accounts.json to match accounts[]
                                         fs.writeFile("accounts.json", JSON.stringify(accounts), function(err) {
-                                                                                                               if (err) {
-                                                                                                                   throw err;
-                                                                                                                   result.message = "ERROR:write";
-                                                                                                               }
-                                                                                                               response.send(JSON.stringify(result));
-                                                                                                               });
+                                                        if (err) {
+                                                            throw err;
+                                                            result.message = "ERROR:write";
+                                                        }
+                                                        response.send(JSON.stringify(result));
+                                                    });
                                      }
                                  });
         }
@@ -195,7 +161,6 @@ app.get("/register", function(request, response) {
 
 app.get("/login", function (request, response) {
         //check that user is in accounts.json, check that accounts[i].password == proposedAccount.password, and return the appropriate messages
-        
         var proposedAccount = request.query.account;
         var foundAddress = -1;
         var result = {
@@ -213,7 +178,10 @@ app.get("/login", function (request, response) {
             response.send(JSON.stringify(result));
         }
         else {
-            if (proposedAccount.password == accounts[foundAddress].password) {
+            var stored = accounts[foundAddress].password;
+            var proposed = proposedAccount.password + stored.substring(stored.length-8); //length of salt = 8
+        
+            if (proposed == stored) {
                 result.message = "SUCCESS";
             }
             else {
@@ -224,4 +192,230 @@ app.get("/login", function (request, response) {
         }
         });
 
+app.get("/rate", function (request, response) {
+        //handle clients' requests to rate games
+        var account = request.query.account;
+        var newRating = request.query.rating;
+        
+        //find game to change (name search is the same one used in response to the /search request)
+        var index = searchGamesByName(request.query.game,1,false);
+        
+        //update game.rating and game.reviews
+        if (account.reviewed) {
+            //if user already has already rated this game, then newRating is the change between the previous and new ratings
+            gamesByName.rating += newRating / gamesByName[index].reviews;
+        }
+        else {
+            //if user hasn't yet rated this game
+            gamesByName[index].rating = (gamesByName[index].rating * gamesByName[index].reviews / (gamesByName[index].reviews+1)) + (newRating / gamesByName[index].reviews+1);
+            gamesByName[index].reviews++;
+        }
+        
+        //find user in accounts[]
+        var result;
+        var output = "";
+        
+        var foundAddress = -1;
+        
+        for (var i=0; i<accounts.length && foundAddress == -1; i++) {
+            if (account.address == accounts[i].address) {
+                foundAddress = i;
+            }
+        }
+        
+        if (foundAddress == -1) {
+            //user not found
+            output = "ERROR:gone";
+        
+            result = {
+                message: output
+            };
+            response.send(JSON.stringify(result));
+        }
+        else {
+            //user found; update accounts[foundAddress].reviews
+            var newReview = {
+                game: request.query.game,
+                rating: newRating
+            };
+        
+            if (!account.reviewed) {
+                //add new review to user's account.reviews
+                accounts[foundAddress].reviews.push(newReview);
+            }
+            else {
+                //find review corresponding to the same game and update accounts[foundAddress].reviews[i].rating
+                var foundReview = false;
+                for (var i=0; i<accounts[foundAddress].reviews.length && !foundReview; i++) {
+                    if (accounts[foundAddress].reviews[i].game == request.query.game) {
+                        foundReview = true;
+        
+                        accounts[foundAddress].reviews[i].rating += newRating;
+        
+                        newReview.rating += accounts[foundAddress].reviews[i].rating;
+                    }
+                }
+                //could handle case where review is not found, but it should not happen, so...
+            }
+        
+            //update accounts.json to match accounts[]
+            fs.writeFile("accounts.json", JSON.stringify(accounts), function(err) {
+                             if (err) {
+                                throw err;
+                                output = "ERROR:write";
+                             }
+                         });
+        
+            //update games.json to match games[]
+            fs.writeFile("games.json", JSON.stringify(games), function(err) {
+                             if (err) {
+                                 throw err;
+                                 output = "ERROR:write";
+                             }
+                         });
+
+            if (output.indexOf("ERROR" > -1)) {
+                //write-error messages
+                result = {
+                    message: output
+                };
+            }
+            else {
+                //success message
+                output = "SUCCESS";
+                result = {
+                    message: output,
+                    reviews: accounts[foundAddress].reviews,
+                    rating: newReview
+                };
+        
+            }
+        
+            response.send(JSON.stringify(result));
+        }
+        });
+
 var server = app.listen(port,ip);
+
+//name search
+function searchGamesByName(searchName,resultMax,completeReturn) {
+    var start = alphabet.indexOf(searchName.charAt(0));
+    start = Math.round((start / alphabet.length) * games.byName.length);
+    
+    var away = 0;
+    var stop = false;
+    var stopP = false;
+    var stopN = false;
+    
+    var result = [];
+    var resultIndex = 0;
+    
+    while (result.length < RESULT_MAX && !stop) {
+        if (!stopP && start+away < games.byName.length) {
+            if (games.byName[start+away].name.toLowerCase().indexOf(searchName) > -1 && result.indexOf(games.byName[start+away]) == -1) {
+                result.push(games.byName[start+away]);
+                resultIndex = start+away;
+            }
+        }
+        else {
+            stopP = true;
+        }
+        
+        if (away > 0) {
+            if (!stopN && start-away >= 0) {
+                if (games.byName[start-away].name.toLowerCase().indexOf(searchName) > -1 && result.indexOf(games.byName[start-away]) == -1) {
+                    result.push(games.byName[start-away]);
+                    resultIndex = start-away;
+                }
+            }
+            else {
+                stopN = true;
+            }
+        }
+        
+        
+        if (start+away < games.byName.length-1 || start-away > 0) {
+            away++;
+        }
+        else {
+            stop = true;
+        }
+    }
+    
+    if (completeReturn) {
+        return result;
+    }
+    else {
+        return resultIndex;
+    }
+}
+
+//tag search
+function searchGamesByTag(searchTag,resultMax) {
+    var result = [];
+    
+    for (var r=0; result.length < RESULT_MAX && r<games.byRating.length; r++) {
+        var tagMatch = false;
+        
+        for (var t=0; !tagMatch && t<games.byRating[r].tags.length; t++) {
+            if (games.byRating[r].tags[t].indexOf(searchTag) > -1 && result.indexOf(games.byName[games.byRating[r].index]) == -1) {
+                result.push(games.byName[games.byRating[r].index]);
+                tagMatch = true;
+            }
+        }
+    }
+    
+    return result;
+}
+
+function encrypt(input) {
+    var available = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()[]{}<>-+=/|\,.?~;:"; //no spaces allowed
+    var salt = "";
+    
+    for (var i=0; i<8; i++) {
+        salt += available.charAt(Math.round(Math.random() * available.length));
+    }
+    
+    console.log(input);
+    
+    var encrypted = input + salt;
+    
+    var bits = "";
+    
+    for (var i=0; i<encrypted.length; i++) {
+        bits += encrypted.charCodeAt(i).toString(2) + " ";
+    }
+    bits = bits.substring(0,bits.length-1);
+    
+    for (var i=0; i<bits.length; i++) {
+        if (i%3 > 0 && bits.charAt(i) != " ") {
+            if (bits.charAt(i) == "0") {
+                bits = bits.substring(0,i) + "1" + bits.substring(i+1);
+            }
+            else {
+                bits = bits.substring(0,i) + "0" + bits.substring(i+1);
+            }
+        }
+    }
+    
+    var start = 0;
+    encrypted = "";
+    
+    while (start < bits.length) {
+        var end = bits.indexOf(" ",start);
+        
+        if (end == -1) {
+            end = bits.length;
+        }
+        
+        var byte = bits.substring(start,end);
+        
+        encrypted += String.fromCharCode(parseInt(byte,2));
+        
+        start = end+1;
+    }
+    
+    encrypted += salt;
+    
+    return encrypted;
+}
