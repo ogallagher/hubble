@@ -72,7 +72,7 @@ app.get("/search", function(request,response) {
                 //tag search
                 var gamesByTag = searchGamesByTag(searchTerms[i],RESULT_MAX-resultTags.length);
         
-                for (var g=0; g<gamesByName.length; g++) {
+                for (var g=0; g<gamesByTag.length; g++) {
                     resultTags.push(gamesByTag[g]);
                 }
             }
