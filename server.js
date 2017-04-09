@@ -179,7 +179,7 @@ app.get("/login", function (request, response) {
         }
         else {
             var stored = accounts[foundAddress].password;
-            var proposed = proposedAccount.password + stored.substring(stored.length-8); //length of salt = 8
+            var proposed = encrypt(proposedAccount.password,stored.substring(stored.length-8)); //length of salt = 8
         
             if (proposed == stored) {
                 result.message = "SUCCESS";
@@ -368,15 +368,18 @@ function searchGamesByTag(searchTag,resultMax) {
     return result;
 }
 
-function encrypt(input) {
+function encrypt(input,seed) {
     var available = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()[]{}<>-+=/|\,.?~;:"; //no spaces allowed
     var salt = "";
     
-    for (var i=0; i<8; i++) {
-        salt += available.charAt(Math.round(Math.random() * available.length));
+    if (seed == null) {
+        for (var i=0; i<8; i++) {
+            salt += available.charAt(Math.round(Math.random() * available.length));
+        }
     }
-    
-    console.log(input);
+    else {
+        salt = seed;
+    }
     
     var encrypted = input + salt;
     
