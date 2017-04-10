@@ -164,8 +164,9 @@ app.get("/login", function (request, response) {
         var proposedAccount = request.query.account;
         var foundAddress = -1;
         var result = {
-                      message: ""
-                      };
+            message: "",
+            reviews: []
+        };
         
         for (var i=0; i<accounts.length && foundAddress == -1; i++) {
             if (proposedAccount.address == accounts[i].address) {
@@ -181,8 +182,10 @@ app.get("/login", function (request, response) {
             var stored = accounts[foundAddress].password;
             var proposed = encrypt(proposedAccount.password,stored.substring(stored.length-8)); //length of salt = 8
         
+        
             if (proposed == stored) {
                 result.message = "SUCCESS";
+                result.reviews = accounts[foundAddress].reviews;
             }
             else {
                 result.message = "ERROR:code";
