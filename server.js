@@ -287,7 +287,7 @@ app.get("/rate", function (request, response) {
                 result = {
                     message: output,
                     reviews: accounts[foundAddress].reviews,
-                    rating: newReview.rating
+                    rating: newRating
                 };
         
             }
