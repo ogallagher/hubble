@@ -276,8 +276,8 @@ app.get("/rate", function (request, response) {
             if (result.message.length == 0) {
                 //success message
                 result.message = "SUCCESS";
-                result.reviews: accounts[foundAddress].reviews,
-                result.rating: newReview.rating
+                result.reviews = accounts[foundAddress].reviews,
+                result.rating = newReview.rating
             }
         }
         
