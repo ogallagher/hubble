@@ -206,12 +206,12 @@ app.get("/rate", function (request, response) {
         //update game.rating and game.reviews
         if (account.reviewed) {
             //if user already has already rated this game, then newRating is the change between the previous and new ratings
-            gamesByName.rating += newRating / gamesByName[index].reviews;
+            games.byName[index].rating += newRating / games.byName[index].reviews;
         }
         else {
             //if user hasn't yet rated this game
-            gamesByName[index].rating = (gamesByName[index].rating * gamesByName[index].reviews / (gamesByName[index].reviews+1)) + (newRating / gamesByName[index].reviews+1);
-            gamesByName[index].reviews++;
+            games.byName[index].rating = (games.byName[index].rating * games.byName[index].reviews / (games.byName[index].reviews+1)) + (newRating / games.byName[index].reviews+1);
+            games.byName[index].reviews++;
         }
         
         //find user in accounts[]
@@ -255,7 +255,7 @@ app.get("/rate", function (request, response) {
         
                         accounts[foundAddress].reviews[i].rating += newRating;
         
-                        newReview.rating += accounts[foundAddress].reviews[i].rating;
+                        newReview.rating = accounts[foundAddress].reviews[i].rating;
                     }
                 }
                 //could handle case where review is not found, but it should not happen, so...
@@ -264,7 +264,6 @@ app.get("/rate", function (request, response) {
             //update accounts.json to match accounts[]
             fs.writeFile("accounts.json", JSON.stringify(accounts), function(err) {
                              if (err) {
-                                throw err;
                                 output = "ERROR:write";
                              }
                          });
@@ -272,7 +271,6 @@ app.get("/rate", function (request, response) {
             //update games.json to match games[]
             fs.writeFile("games.json", JSON.stringify(games), function(err) {
                              if (err) {
-                                 throw err;
                                  output = "ERROR:write";
                              }
                          });
