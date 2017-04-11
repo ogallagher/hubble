@@ -215,8 +215,11 @@ app.get("/rate", function (request, response) {
         }
         
         //find user in accounts[]
-        var result;
-        var output = "";
+        var result = {
+            message: "",
+            reviews: [],
+            rating: -1
+        };
         
         var foundAddress = -1;
         
@@ -228,12 +231,7 @@ app.get("/rate", function (request, response) {
         
         if (foundAddress == -1) {
             //user not found
-            output = "ERROR:gone";
-        
-            result = {
-                message: output
-            };
-            response.send(JSON.stringify(result));
+            result.message = "ERROR:gone";
         }
         else {
             //user found; update accounts[foundAddress].reviews
@@ -264,36 +262,26 @@ app.get("/rate", function (request, response) {
             //update accounts.json to match accounts[]
             fs.writeFile("accounts.json", JSON.stringify(accounts), function(err) {
                              if (err) {
-                                output = "ERROR:write";
+                                result.message = "ERROR:write";
                              }
                          });
         
             //update games.json to match games[]
             fs.writeFile("games.json", JSON.stringify(games), function(err) {
                              if (err) {
-                                 output = "ERROR:write";
+                                 result.message = "ERROR:write";
                              }
                          });
 
-            if (output.indexOf("ERROR" > -1)) {
-                //write-error messages
-                result = {
-                    message: output
-                };
-            }
-            else {
+            if (result.message.length == 0) {
                 //success message
-                output = "SUCCESS";
-                result = {
-                    message: output,
-                    reviews: accounts[foundAddress].reviews,
-                    rating: newRating
-                };
-        
+                result.message = "SUCCESS";
+                result.reviews: accounts[foundAddress].reviews,
+                result.rating: newReview.rating
             }
-        
-            response.send(JSON.stringify(result));
         }
+        
+        response.send(JSON.stringify(result));
         });
 
 var server = app.listen(port,ip);
