@@ -206,12 +206,12 @@ app.get("/rate", function (request, response) {
         //update game.rating and game.reviews
         if (account.reviewed == "true") {       //I think request.query objects all come in as strings, so they should be parsed individually according to what they really represent.
             //if user already has already rated this game, then newRating is the change between the previous and new ratings
-            games.byName[index].rating = JSON.stringify(parseFloat(games.byName[index].rating) + (newRating / parseFloat(games.byName[index].reviews)));
+            games.byName[index].rating = parseFloat(games.byName[index].rating) + (newRating / parseFloat(games.byName[index].reviews));
         }
         else {
             //if user hasn't yet rated this game
-            games.byName[index].rating = JSON.stringify((parseFloat(games.byName[index].rating) * parseFloat(games.byName[index].reviews) / (parseFloat(games.byName[index].reviews)+1)) + (newRating / parseFloat(games.byName[index].reviews)+1));
-            games.byName[index].reviews = JSON.stringify(parseInt(games.byName[index].reviews)+1);
+            games.byName[index].rating = (parseFloat(games.byName[index].rating) * parseFloat(games.byName[index].reviews) / (parseFloat(games.byName[index].reviews)+1)) + (newRating / parseFloat(games.byName[index].reviews)+1);
+            games.byName[index].reviews = parseInt(games.byName[index].reviews)+1;
         }
         
         //find user in accounts[]
@@ -242,7 +242,7 @@ app.get("/rate", function (request, response) {
         
             if (account.reviewed == "false") {
                 //add new review to user's account.reviews
-                accounts[foundAddress].reviews.push(JSON.stringify(newReview));
+                accounts[foundAddress].reviews.push(newReview);
             }
             else {
                 //find review corresponding to the same game and update accounts[foundAddress].reviews[i].rating
@@ -251,7 +251,7 @@ app.get("/rate", function (request, response) {
                     if (accounts[foundAddress].reviews[i].game == request.query.game) {
                         foundReview = true;
         
-                        accounts[foundAddress].reviews[i].rating = JSON.stringify(parseInt(accounts[foundAddress].reviews[i].rating) + newRating);
+                        accounts[foundAddress].reviews[i].rating = parseInt(accounts[foundAddress].reviews[i].rating) + newRating;
         
                         newReview.rating = parseInt(accounts[foundAddress].reviews[i].rating);
                     }
