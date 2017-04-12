@@ -5,9 +5,9 @@
             "authors": ["Lima Sky","Cloud Games"],
             "description": "Tap to shoot, tilt to move horizontally. Avoid and shoot enemies, get powerups, and don't fall!",
             "tags": ["infinite","arcade","singleplayer","2d","simple","platforms","jumping","mobile"],
-            "rating": "4",
-            "reviews": "1",
-            "featured": "y",
+            "rating": 4,
+            "reviews": 1,
+            "featured": true,
             "url": "http://cloudgames.com/games/html5/doodle-jump-new-en-s-iga-cloud/index.html?pub=10&popup=1&ath="
         },
         {
@@ -15,9 +15,9 @@
             "authors": ["Nguyen Ha Dong","dotGEARS"],
             "description": "Tap to keep your bird in the air. Pass between the pipes without hitting them.",
             "tags": ["infinite","arcade","singleplayer","2d","simple","precision","mobile"],
-            "rating": "2",
-            "reviews": "1",
-            "featured": "n",
+            "rating": 2,
+            "reviews": 1,
+            "featured": false,
             "url": "http://m.silvergames.com/game/flappy-bird/"
         },
         {
@@ -25,9 +25,9 @@
             "authors": ["Sidney de Vries"],
             "description": "A fun multiplayer shooting game. You are placed in an arena with a few other players. Kill and don't die. WASD+mouse controls.",
             "tags": ["3d","shooting","action","io","reflexes","multiplayer"],
-            "rating": "5",
-            "reviews": "1",
-            "featured": "n",
+            "rating": 5,
+            "reviews": 1,
+            "featured": false,
             "url": "http://karnage.io/"
         },
         {
@@ -35,9 +35,9 @@
             "authors": ["Voodoo"],
             "description": "Each player is a colored square. Take territory by venturing and returning, and destroy your enemies. Be sure that no one else hits your trail, though!",
             "tags": ["multiplayer","strategy","conquest","simple","snake","io","2d"],
-            "rating": "5",
-            "reviews": "1",
-            "featured": "y",
+            "rating": 5,
+            "reviews": 1,
+            "featured": true,
             "url": "http://paper-io.com/"
         },
         {
@@ -45,9 +45,9 @@
             "authors": ["Owen Gallagher"],
             "description": "Shuffle is an original online strategy board game. Players move their pieces at the same time, trying to eliminate the others' pieces and be the last one left standing.",
             "tags": ["strategy","multiplayer","2d","board","chess","turnbased"],
-            "rating": "5",
-            "reviews": "1",
-            "featured": "y",
+            "rating": 5,
+            "reviews": 1,
+            "featured": true,
             "url": "http://shuffle-ojpgapps.rhcloud.com/"
         },
         {
@@ -55,9 +55,9 @@
             "authors": ["Anonymous Group"],
             "description": "Each player is a worm. Guide your worm with the mouse or arrow keys to eat and grow. If you crash into another's body, you die.",
             "tags": ["multiplayer","action","snake","io","survival","infinite"],
-            "rating": "4",
-            "reviews": "1",
-            "featured": "y",
+            "rating": 4,
+            "reviews": 1,
+            "featured": true,
             "url": "http://slither.io/"
         },
         {
@@ -65,9 +65,9 @@
             "authors": ["Anonymous Group"],
             "description": "Each player is a plane. Use the mouse to steer and shoot. Lots of upgrades. Shoot down other planes and stay alive to move up the leaderboard.",
             "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
-            "rating": "3",
-            "reviews": "1",
-            "featured": "n",
+            "rating": 3,
+            "reviews": 1,
+            "featured": false,
             "url": "http://wings.io/"
         },
         {
@@ -75,44 +75,44 @@
             "authors": ["Cloud Games"],
             "description": "You are a red ball on a zigzagging path. Collect meet chunks to increase score by tapping to glide left and right. Dont fall off the path.",
             "tags": ["singleplayer","infinite","arcade","precision","orthogonal","mobile"],
-            "rating": "2",
-            "reviews": "1",
-            "featured": "n",
+            "rating": 2,
+            "reviews": 1,
+            "featured": false,
             "url": "http://cloudgames.com/games/html5/zball5-new-en-s-iga-cloud/index.html?pub=10"
         }
     ],
     "byRating": [
         {
             "tags": ["3d","shooting","action","io","reflexes","multiplayer"],
-            "index": "2"
+            "index": 2
         },
         {
             "tags": ["multiplayer","strategy","conquest","simple","snake","io","2d"],
-            "index": "3"
+            "index": 3
         },
         {
             "tags": ["strategy","multiplayer","2d","board","chess","turnbased"],
-            "index": "4"
+            "index": 4
         },
         {
             "tags" : ["infinite","arcade","singleplayer","2d","simple","platforms","jumping","mobile"],
-            "index": "0"
+            "index": 0
         },
         {
             "tags": ["multiplayer","action","snake","io","survival","infinite"],
-            "index": "5"
+            "index": 5
         },
         {
             "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
-            "index": "6"
+            "index": 6
         },
         {
             "tags" : ["infinite","arcade","singleplayer","2d","simple","precision","mobile"],
-            "index": "1"
+            "index": 1
         },
         {
             "tags": ["singleplayer","infinite","arcade","precision","orthogonal","mobile"],
-            "index": "7"
+            "index": 7
         }
     ]
 }

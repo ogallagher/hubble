@@ -92,7 +92,7 @@ app.get("/featured", function(request,response) {
         var result = [];
         
         for (var i=0; i<games.byName.length && result.length < RESULT_MAX; i++) {
-            if (games.byName[i].featured === "y") {
+            if (games.byName[i].featured) {
                 result.push(games.byName[i]);
             }
         }
