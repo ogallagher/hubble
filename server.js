@@ -199,28 +199,32 @@ app.get("/rate", function (request, response) {
         //handle clients' requests to rate games
         var account = request.query.account;
         var newRating = parseFloat(request.query.rating);
-        
-        //find game to change (name search is the same one used in response to the /search request)
-        var index = searchGamesByName(request.query.game,1,false);
-        
-        //update game.rating and game.reviews
-        if (account.reviewed == "true") {       //I think request.query objects all come in as strings, so they should be parsed individually according to what they really represent.
-            //if user already has already rated this game, then newRating is the change between the previous and new ratings
-            games.byName[index].rating = parseFloat(games.byName[index].rating) + (newRating / parseFloat(games.byName[index].reviews));
-        }
-        else {
-            //if user hasn't yet rated this game
-            games.byName[index].rating = (parseFloat(games.byName[index].rating) * parseFloat(games.byName[index].reviews) / (parseFloat(games.byName[index].reviews)+1)) + (newRating / parseFloat(games.byName[index].reviews)+1);
-            games.byName[index].reviews = parseInt(games.byName[index].reviews)+1;
-        }
-        
-        //find user in accounts[]
         var result = {
             message: "",
             reviews: [],
             rating: -1
         };
         
+        //find game to change (name search is the same one used in response to the /search request)
+        var index = searchGamesByName(request.query.game.toLowerCase(),1,false);
+        
+        if (index == -1) {
+            result.message = "ERROR:game";
+        }
+        else {
+            //update game.rating and game.reviews
+            if (account.reviewed == "true") {       //I think request.query objects all come in as strings, so they should be parsed individually according to what they really represent.
+                //if user already has already rated this game, then newRating is the change between the previous and new ratings
+                games.byName[index].rating = parseFloat(games.byName[index].rating) + (newRating / parseFloat(games.byName[index].reviews));
+            }
+            else {
+                //if user hasn't yet rated this game
+                games.byName[index].rating = (parseFloat(games.byName[index].rating) * parseFloat(games.byName[index].reviews) / (parseFloat(games.byName[index].reviews)+1)) + (newRating / parseFloat(games.byName[index].reviews)+1);
+                games.byName[index].reviews = parseInt(games.byName[index].reviews)+1;
+            }
+        }
+        
+        //find user in accounts[]
         var foundAddress = -1;
         
         for (var i=0; i<accounts.length && foundAddress == -1; i++) {
@@ -301,7 +305,7 @@ function searchGamesByName(searchName,resultMax,completeReturn) {
     var stopN = false;
     
     var result = [];
-    var resultIndex = 0;
+    var resultIndex = -1;
     
     while (result.length < RESULT_MAX && !stop) {
         if (!stopP && start+away < games.byName.length) {
