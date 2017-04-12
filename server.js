@@ -213,14 +213,19 @@ app.get("/rate", function (request, response) {
         }
         else {
             //update game.rating and game.reviews
+        
+            var n = parseFloat(games.byName[index].reviews);
+            var mean = parseFloat(games.byName[index].rating);
+        
             if (account.reviewed == "true") {       //I think request.query objects all come in as strings, so they should be parsed individually according to what they really represent.
                 //if user already has already rated this game, then newRating is the change between the previous and new ratings
-                games.byName[index].rating = parseFloat(games.byName[index].rating) + (newRating / parseFloat(games.byName[index].reviews));
+                games.byName[index].rating = mean + (newRating / n);
             }
             else {
                 //if user hasn't yet rated this game
-                games.byName[index].rating = (parseFloat(games.byName[index].rating) * parseFloat(games.byName[index].reviews) / (parseFloat(games.byName[index].reviews)+1)) + (newRating / parseFloat(games.byName[index].reviews)+1);
-                games.byName[index].reviews = parseInt(games.byName[index].reviews)+1;
+        
+                games.byName[index].rating = ((mean * n) + newRating) / (n+1);
+                games.byName[index].reviews = n+1;
             }
         }
         
