@@ -198,20 +198,20 @@ app.get("/login", function (request, response) {
 app.get("/rate", function (request, response) {
         //handle clients' requests to rate games
         var account = request.query.account;
-        var newRating = request.query.rating;
+        var newRating = parseInt(request.query.rating);
         
         //find game to change (name search is the same one used in response to the /search request)
         var index = searchGamesByName(request.query.game,1,false);
         
         //update game.rating and game.reviews
-        if (account.reviewed) {
+        if (account.reviewed == "true") {       //I think request.query objects all come in as strings, so they should be parsed individually according to what they really represent.
             //if user already has already rated this game, then newRating is the change between the previous and new ratings
-            games.byName[index].rating += newRating / games.byName[index].reviews;
+            games.byName[index].rating = parseFloat(games.byName[index].rating) + (newRating / parseInt(games.byName[index].reviews));
         }
         else {
             //if user hasn't yet rated this game
-            games.byName[index].rating = (games.byName[index].rating * games.byName[index].reviews / (games.byName[index].reviews+1)) + (newRating / games.byName[index].reviews+1);
-            games.byName[index].reviews++;
+            games.byName[index].rating = (parseFloat(games.byName[index].rating) * parseInt(games.byName[index].reviews) / (parseInt(games.byName[index].reviews)+1)) + (newRating / parseInt(games.byName[index].reviews)+1);
+            games.byName[index].reviews = parseInt(games.byName[index].reviews)+1;
         }
         
         //find user in accounts[]
@@ -240,7 +240,7 @@ app.get("/rate", function (request, response) {
                 rating: newRating
             };
         
-            if (!account.reviewed) {
+            if (account.reviewed == "false") {
                 //add new review to user's account.reviews
                 accounts[foundAddress].reviews.push(newReview);
             }
@@ -251,12 +251,16 @@ app.get("/rate", function (request, response) {
                     if (accounts[foundAddress].reviews[i].game == request.query.game) {
                         foundReview = true;
         
-                        accounts[foundAddress].reviews[i].rating += newRating;
+                        accounts[foundAddress].reviews[i].rating = parseInt(accounts[foundAddress].reviews[i].rating) + newRating;
         
-                        newReview.rating = accounts[foundAddress].reviews[i].rating;
+                        newReview.rating = parseInt(accounts[foundAddress].reviews[i].rating);
                     }
                 }
-                //could handle case where review is not found, but it should not happen, so...
+        
+                if (!foundReview) {
+                    //review not found
+                    result.message = "ERROR:review";
+                }
             }
         
             //update accounts.json to match accounts[]
