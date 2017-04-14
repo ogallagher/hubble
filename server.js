@@ -18,8 +18,8 @@ var fs = require("fs");
 
 var games = require("./games.json");
 var accounts = require("./accounts.json");
+
 /*
- 
  ORDER
  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  0  1  2  3  4  5  6  7  8  9
  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
@@ -29,21 +29,22 @@ var accounts = require("./accounts.json");
      Doodle Jump:   04
      Flappy Bird:   06
      Karnage:       11
+     Paper IO:      16
      Shuffle:       19 08
      Slither:       19 12
      Wings:         23
      Zball 5:       26
  
- games.byRating lists the games according to game.rating
+ games.byRating lists the games according to game.rating, and then game.index
  
      2 Karnage:         5
-     3 Shuffle:         5
+     3 Paper IO:        5
+     4 Shuffle:         5
      0 Doodle Jump:     4
-     4 Slither:         4
-     5 Wings:           3
+     5 Slither:         4
+     6 Wings:           3
      1 Flappy Bird:     2
-     6 Zball 5:         2
- 
+     7 Zball 5:         2
 */
 
 var port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
@@ -143,14 +144,12 @@ app.get("/register", function(request, response) {
                                         //add new account to accounts[]
                                         accounts.push(newAccount);
                                  
-                                        //update accounts.json to match accounts[]
-                                        fs.writeFile("accounts.json", JSON.stringify(accounts), function(err) {
-                                                        if (err) {
-                                                            throw err;
-                                                            result.message = "ERROR:write";
-                                                        }
-                                                        response.send(JSON.stringify(result));
-                                                    });
+                                        //update accounts.json
+                                        if (!fileAccounts()) {
+                                            result.message = "ERROR:write";
+                                        }
+                                 
+                                        response.send(JSON.stringify(result));
                                      }
                                  });
         }
@@ -227,6 +226,12 @@ app.get("/rate", function (request, response) {
                 games.byName[index].rating = ((mean * n) + newRating) / (n+1);
                 games.byName[index].reviews = n+1;
             }
+        
+            //update games.byTag's order to reflect games.byName[index].rating; moveGameByTag(indexByName,oldRating,newRating) returns boolean
+        
+            if (!moveGameByTag(index,mean,games.byName[index].rating)) {
+                result.message = "ERROR:game";
+            }
         }
         
         //find user in accounts[]
@@ -272,19 +277,15 @@ app.get("/rate", function (request, response) {
                 }
             }
         
-            //update accounts.json to match accounts[]
-            fs.writeFile("accounts.json", JSON.stringify(accounts), function(err) {
-                             if (err) {
-                                result.message = "ERROR:write";
-                             }
-                         });
+            //update accounts.json
+            if (!fileAccounts()) {
+                result.message = "ERROR:write";
+            }
         
-            //update games.json to match games[]
-            fs.writeFile("games.json", JSON.stringify(games), function(err) {
-                             if (err) {
-                                 result.message = "ERROR:write";
-                             }
-                         });
+            //update games.json
+            if (!fileGames()) {
+                result.message = "ERROR:write";
+            }
 
             if (result.message.length == 0) {
                 //success message
@@ -366,6 +367,116 @@ function searchGamesByTag(searchTag,resultMax) {
             }
         }
     }
+    
+    return result;
+}
+
+//the input is the index of the game to move in games.byName. This removes games.byTag[t] (where games.byTag[t].index == index) and finds a new place for it according to games.byName[index].rating
+function moveGameByTag(indexByName,oldRating,newRating) {
+    var result = deleteGameByTag(indexByName,oldRating);
+    
+    if (result) {
+        addGameByTag(indexByName,newRating);
+    }
+    
+    return result;
+}
+
+function deleteGameByTag(indexByName,rating) {
+    var start = ((5-rating)/4) * games.byTag.length;
+    var away = 0;
+    var stop = false;
+    var stopP = false;
+    var stopN = false;
+    var result = false;
+    
+    //find game where games.byTag[t].index == indexByName and remove it from games.byTag
+    while (!stop) {
+        if (!stopP && start+away < games.byTag.length && !result) {
+            if (games.byTag[start+away].index == indexByName) {
+                games.splice(start+away,1);
+                result = true;
+                stop = true;
+            }
+        }
+        else {
+            stopP = true;
+        }
+        
+        if (!stopN && start-away >= 0 && !result) {
+            if (games.byTag[start-away].index == indexByName) {
+                games.splice(start-away,1);
+                result = true;
+                stop = true;
+            }
+        }
+        else {
+            stopN = true;
+        }
+        
+        away++;
+    }
+    
+    return result;
+}
+
+//this appends a new game to games.byName lexicographically, ¿and then to games.byTag by rating+index?
+function addGameByName() {
+    
+}
+
+//this appends a new game to games.byTag according to game.rating
+function addGameByTag(indexByName,rating) {
+    var location = ((5-rating)/4) * games.byTag.length;
+    var stop = false;
+    
+    var game = {
+        tags: games.byName[indexByName].tags,
+        index: indexByName
+    }
+    
+    var left = games.byName[games.byTag[location].index];
+    var right = games.byName[games.byTag[location+1].index];
+    
+    while ((left.rating < rating && right.rating < rating) || (right.rating == rating && right.index < indexByName)) {
+        location++;
+        
+        left = games.byName[games.byTag[location].index];
+        right = games.byName[games.byTag[location+1].index];
+    }
+    
+    while ((left.rating > rating && right.rating > rating) || (left.rating == rating && left.index > indexByName)) {
+        location--;
+        
+        left = games.byName[games.byTag[location].index];
+        right = games.byName[games.byTag[location+1].index];
+    }
+    
+    games.splice(location,0,game); //splice(location,#_delete,[insert_1,insert_2,...])
+}
+
+//update games.json to match games
+function fileGames() {
+    var result = true;
+    
+    fs.writeFile("games.json", JSON.stringify(games), function(err) {
+                 if (err) {
+                     result = false;
+                 }
+    });
+    
+    return result;
+}
+
+//update accounts.json to match accounts
+function fileAccounts() {
+    var result = true;
+    
+    fs.writeFile("accounts.json", JSON.stringify(accounts), function(err) {
+                 if (err) {
+                     result = false;
+                 }
+    });
     
     return result;
 }
