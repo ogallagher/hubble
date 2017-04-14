@@ -435,21 +435,21 @@ function addGameByRating(indexByName,rating) {
         index: indexByName
     }
     
-    var left = games.byName[games.byRating[location].index];
-    var right = games.byName[games.byRating[location+1].index];
+    var left = games.byName[games.byRating[location-1].index];
+    var right = games.byName[games.byRating[location].index];
     
     while ((left.rating < rating && right.rating < rating) || (right.rating == rating && right.index < indexByName)) {
         location++;
         
-        left = games.byName[games.byRating[location].index];
-        right = games.byName[games.byRating[location+1].index];
+        left = games.byName[games.byRating[location-1].index];
+        right = games.byName[games.byRating[location].index];
     }
     
     while ((left.rating > rating && right.rating > rating) || (left.rating == rating && left.index > indexByName)) {
         location--;
         
-        left = games.byName[games.byRating[location].index];
-        right = games.byName[games.byRating[location+1].index];
+        left = games.byName[games.byRating[location-1].index];
+        right = games.byName[games.byRating[location].index];
     }
     
     games.byRating.splice(location,0,game); //splice(location,#_delete,[insert_1,insert_2,...])
