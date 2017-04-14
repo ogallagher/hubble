@@ -227,9 +227,9 @@ app.get("/rate", function (request, response) {
                 games.byName[index].reviews = n+1;
             }
         
-            //update games.byTag's order to reflect games.byName[index].rating; moveGameByTag(indexByName,oldRating,newRating) returns boolean
+            //update games.byRating's order to reflect games.byName[index].rating; moveGameByRating(indexByName,oldRating,newRating) returns boolean
         
-            if (!moveGameByTag(index,mean,games.byName[index].rating)) {
+            if (!moveGameByRating(index,mean,games.byName[index].rating)) {
                 result.message = "ERROR:game";
             }
         }
@@ -371,30 +371,30 @@ function searchGamesByTag(searchTag,resultMax) {
     return result;
 }
 
-//the input is the index of the game to move in games.byName. This removes games.byTag[t] (where games.byTag[t].index == index) and finds a new place for it according to games.byName[index].rating
-function moveGameByTag(indexByName,oldRating,newRating) {
-    var result = deleteGameByTag(indexByName,oldRating);
+//the input is the index of the game to move in games.byName. This removes games.byRating[r] (where games.byRating[r].index == index) and finds a new place for it according to games.byName[index].rating
+function moveGameByRating(indexByName,oldRating,newRating) {
+    var result = deleteGameByRating(indexByName,oldRating);
     
     if (result) {
-        addGameByTag(indexByName,newRating);
+        addGameByRating(indexByName,newRating);
     }
     
     return result;
 }
 
-function deleteGameByTag(indexByName,rating) {
-    var start = ((5-rating)/4) * games.byTag.length;
+function deleteGameByRating(indexByName,rating) {
+    var start = ((5-rating)/4) * games.byRating.length;
     var away = 0;
     var stop = false;
     var stopP = false;
     var stopN = false;
     var result = false;
     
-    //find game where games.byTag[t].index == indexByName and remove it from games.byTag
+    //find game where games.byRating[t].index == indexByName and remove it from games.byRating
     while (!stop) {
-        if (!stopP && start+away < games.byTag.length && !result) {
-            if (games.byTag[start+away].index == indexByName) {
-                games.splice(start+away,1);
+        if (!stopP && start+away < games.byRating.length && !result) {
+            if (games.byRating[start+away].index == indexByName) {
+                games.byRating.splice(start+away,1);
                 result = true;
                 stop = true;
             }
@@ -404,8 +404,8 @@ function deleteGameByTag(indexByName,rating) {
         }
         
         if (!stopN && start-away >= 0 && !result) {
-            if (games.byTag[start-away].index == indexByName) {
-                games.splice(start-away,1);
+            if (games.byRating[start-away].index == indexByName) {
+                games.byRating.splice(start-away,1);
                 result = true;
                 stop = true;
             }
@@ -420,14 +420,14 @@ function deleteGameByTag(indexByName,rating) {
     return result;
 }
 
-//this appends a new game to games.byName lexicographically, ¿and then to games.byTag by rating+index?
+//this appends a new game to games.byName lexicographically, ¿and then to games.byRating by rating+index?
 function addGameByName() {
     
 }
 
-//this appends a new game to games.byTag according to game.rating
-function addGameByTag(indexByName,rating) {
-    var location = ((5-rating)/4) * games.byTag.length;
+//this appends a new game to games.byRating according to game.rating
+function addGameByRating(indexByName,rating) {
+    var location = ((5-rating)/4) * games.byRating.length;
     var stop = false;
     
     var game = {
@@ -435,24 +435,24 @@ function addGameByTag(indexByName,rating) {
         index: indexByName
     }
     
-    var left = games.byName[games.byTag[location].index];
-    var right = games.byName[games.byTag[location+1].index];
+    var left = games.byName[games.byRating[location].index];
+    var right = games.byName[games.byRating[location+1].index];
     
     while ((left.rating < rating && right.rating < rating) || (right.rating == rating && right.index < indexByName)) {
         location++;
         
-        left = games.byName[games.byTag[location].index];
-        right = games.byName[games.byTag[location+1].index];
+        left = games.byName[games.byRating[location].index];
+        right = games.byName[games.byRating[location+1].index];
     }
     
     while ((left.rating > rating && right.rating > rating) || (left.rating == rating && left.index > indexByName)) {
         location--;
         
-        left = games.byName[games.byTag[location].index];
-        right = games.byName[games.byTag[location+1].index];
+        left = games.byName[games.byRating[location].index];
+        right = games.byName[games.byRating[location+1].index];
     }
     
-    games.splice(location,0,game); //splice(location,#_delete,[insert_1,insert_2,...])
+    games.byRating.splice(location,0,game); //splice(location,#_delete,[insert_1,insert_2,...])
 }
 
 //update games.json to match games
