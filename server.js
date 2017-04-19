@@ -216,7 +216,7 @@ app.get("/rate", function (request, response) {
             var n = parseFloat(games.byName[index].reviews);
             var mean = parseFloat(games.byName[index].rating);
         
-            if (account.reviewed == "true") {       //I think request.query objects all come in as strings, so they should be parsed individually according to what they really represent.
+            if (account.reviewed) {       //I think request.query objects all come in as strings, so they should be parsed individually according to what they really represent.
                 //if user already has already rated this game, then newRating is the change between the previous and new ratings
                 games.byName[index].rating = mean + (newRating / n);
             }
@@ -254,7 +254,7 @@ app.get("/rate", function (request, response) {
                 rating: newRating
             };
         
-            if (account.reviewed == "false") {
+            if (!account.reviewed) {
                 //add new review to user's account.reviews
                 accounts[foundAddress].reviews.push(newReview);
             }
@@ -383,7 +383,7 @@ function moveGameByRating(indexByName,oldRating,newRating) {
 }
 
 function deleteGameByRating(indexByName,rating) {
-    var start = ((5-rating)/4) * games.byRating.length;
+    var start = Math.round(((5-rating)/4) * games.byRating.length);
     var away = 0;
     var stop = false;
     var stopP = false;
@@ -427,7 +427,7 @@ function addGameByName() {
 
 //this appends a new game to games.byRating according to game.rating
 function addGameByRating(indexByName,rating) {
-    var location = ((5-rating)/4) * games.byRating.length;
+    var location = Math.round(((5-rating)/4) * games.byRating.length);
     var stop = false;
     
     var game = {
@@ -435,20 +435,31 @@ function addGameByRating(indexByName,rating) {
         index: indexByName
     }
     
-    var left = games.byName[games.byRating[location-1].index];
-    var right = games.byName[games.byRating[location].index];
+    var left = null;
+    var right = null;
     
-    while ((left.rating < rating && right.rating < rating) || (right.rating == rating && right.index < indexByName)) {
-        location++;
-        
+    if (location > 0) {
         left = games.byName[games.byRating[location-1].index];
+    }
+    if (location < games.byRating.length) {
         right = games.byName[games.byRating[location].index];
     }
     
-    while ((left.rating > rating && right.rating > rating) || (left.rating == rating && left.index > indexByName)) {
-        location--;
+    while ((location < games.byRating.length) && ((left.rating > rating && right.rating > rating) || (right.rating == rating && games.byRating[location].index < indexByName))) {
+        location++;
         
         left = games.byName[games.byRating[location-1].index];
+        if (location < games.byRating.length) {
+            right = games.byName[games.byRating[location].index];
+        }
+    }
+    
+    while ((location > 0) && ((left.rating < rating && right.rating < rating) || (left.rating == rating && games.byRating[location-1].index > indexByName))) {
+        location--;
+        
+        if (location > 0) {
+            left = games.byName[games.byRating[location-1].index];
+        }
         right = games.byName[games.byRating[location].index];
     }
     
