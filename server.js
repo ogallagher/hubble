@@ -441,8 +441,14 @@ function addGameByRating(indexByName,rating) {
     if (location > 0) {
         left = games.byName[games.byRating[location-1].index];
     }
+    else {
+        left = games.byName[indexByName];
+    }
     if (location < games.byRating.length) {
         right = games.byName[games.byRating[location].index];
+    }
+    else {
+        right = games.byName[indexByName];
     }
     
     while ((location < games.byRating.length) && ((left.rating > rating && right.rating > rating) || (right.rating == rating && games.byRating[location].index < indexByName))) {
@@ -452,6 +458,9 @@ function addGameByRating(indexByName,rating) {
         if (location < games.byRating.length) {
             right = games.byName[games.byRating[location].index];
         }
+        else {
+            right = games.byName[indexByName];
+        }
     }
     
     while ((location > 0) && ((left.rating < rating && right.rating < rating) || (left.rating == rating && games.byRating[location-1].index > indexByName))) {
@@ -459,6 +468,9 @@ function addGameByRating(indexByName,rating) {
         
         if (location > 0) {
             left = games.byName[games.byRating[location-1].index];
+        }
+        else {
+            left = games.byName[indexByName];
         }
         right = games.byName[games.byRating[location].index];
     }
