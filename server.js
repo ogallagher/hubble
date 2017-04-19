@@ -216,7 +216,7 @@ app.get("/rate", function (request, response) {
             var n = parseFloat(games.byName[index].reviews);
             var mean = parseFloat(games.byName[index].rating);
         
-            if (account.reviewed) {       //I think request.query objects all come in as strings, so they should be parsed individually according to what they really represent.
+            if (account.reviewed == "true") {       //I think request.query objects all come in as strings, so they should be parsed individually according to what they really represent.
                 //if user already has already rated this game, then newRating is the change between the previous and new ratings
                 games.byName[index].rating = mean + (newRating / n);
             }
@@ -254,7 +254,7 @@ app.get("/rate", function (request, response) {
                 rating: newRating
             };
         
-            if (!account.reviewed) {
+            if (account.reviewed == "false") {
                 //add new review to user's account.reviews
                 accounts[foundAddress].reviews.push(newReview);
             }
