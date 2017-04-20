@@ -28,10 +28,10 @@
 > > client: random icon
 > > client: create /random query from bubble
 > > server: /random html get handler returns a random game from games.byName
-• server: prevent redundant search results that appear for overlapping search terms
+? server: prevent redundant search results that appear for overlapping search terms
 √ server: update games.byTag’s order in the /rate request handler function by deleting the edited game from its current position and then putting it back according to newRating
-• client: #bubble.fill if account.reviews contains it’s game and account.reviews[r].rating >= this.label.name
-• client: don't mute stars in mobile
+? client: #bubble.fill if account.reviews contains it’s game and account.reviews[r].rating >= this.label.name
+? client: don't mute stars in mobile
 √ client: don't deselect and return home after rating or trying to rate
 > client: add account.information.[…]
 > > reviews
@@ -39,3 +39,5 @@
 > > register date
 > > age
 > sometimes passwords won’t save correctly and aren’t recognized by the server upon login…
+? client: move cursor to center after release in select() function
+• client: add loading variable to Bubble class, so other bubbles don’t pulse when fetching information

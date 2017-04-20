@@ -67,14 +67,18 @@ app.get("/search", function(request,response) {
                 var gamesByName = searchGamesByName(searchTerms[i],RESULT_MAX-resultNames.length,true);
         
                 for (var g=0; g<gamesByName.length; g++) {
-                    resultNames.push(gamesByName[g]);
+                    if (resultNames.indexOf(gamesByName[g]) == -1) {
+                        resultNames.push(gamesByName[g]);
+                    }
                 }
         
                 //tag search
                 var gamesByTag = searchGamesByTag(searchTerms[i],RESULT_MAX-resultTags.length);
         
                 for (var g=0; g<gamesByTag.length; g++) {
-                    resultTags.push(gamesByTag[g]);
+                    if (resultTags.indexOf(gamesByTag[g]) == -1) {
+                        resultTags.push(gamesByTag[g]);
+                    }
                 }
             }
         }
