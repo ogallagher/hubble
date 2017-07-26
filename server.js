@@ -110,7 +110,9 @@ app.get("/register", function(request, response) {
         var newAccount = {
             address: request.query.account.address,
             password: request.query.account.password,
-            reviews: []
+            reviews: [],
+            curator: false,
+            bday: new Date()
         }
         var foundAddress = false;
         var result = {
@@ -168,7 +170,9 @@ app.get("/login", function (request, response) {
         var foundAddress = -1;
         var result = {
             message: "",
-            reviews: []
+            reviews: [],
+            curator: false,
+            bday: null
         };
         
         for (var i=0; i<accounts.length && foundAddress == -1; i++) {
@@ -189,6 +193,8 @@ app.get("/login", function (request, response) {
             if (proposed == stored) {
                 result.message = "SUCCESS";
                 result.reviews = accounts[foundAddress].reviews;
+                result.curator = accounts[foundAddress].curator;
+                result.bday = accounts[foundAddress].bday;
             }
             else {
                 result.message = "ERROR:code";
