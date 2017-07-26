@@ -107,12 +107,18 @@ app.get("/featured", function(request,response) {
 
 app.get("/register", function(request, response) {
         //check if user already exists, check if email is valid, and return the appropriate messages
+        var now = new Date();
+        
         var newAccount = {
             address: request.query.account.address,
             password: request.query.account.password,
             reviews: [],
             curator: false,
-            bday: new Date()
+            bday: {
+                year: now.getFullYear(),
+                month: now.getMonth() + 1,
+                day: now.getDate()
+            }
         }
         var foundAddress = false;
         var result = {
