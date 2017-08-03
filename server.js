@@ -99,6 +99,20 @@ app.get("/featured", function(request,response) {
         
         for (var i=0; i<games.byName.length && result.length < RESULT_MAX; i++) {
             if (games.byName[i].featured) {
+                var iconData = imageToText("./game_icons/" + games.byName[i].name + ".png");
+        
+                var game = {
+                    name: games.byName[i].name,
+                    authors: games.byName[i].authors,
+                    description: games.byName[i].description,
+                    tags: games.byName[i].tags,
+                    rating: games.byName[i].rating,
+                    reviews: games.byName[i].reviews,
+                    featured: games.byName[i].featured,
+                    url: games.byName[i].url,
+                    icon: iconData //the conversion of the image to a base64 string for transfer was taken from HaNdTriX at stackoverflow
+                }
+                
                 result.push(games.byName[i]);
             }
         }
@@ -340,6 +354,9 @@ app.get("/curate", function (request,response) {
             result.message = "ERROR:gone";
         }
         else {
+            if (accounts[foundAddress].curator == null) {
+                result.message = "ERROR:curator";
+            }
             if (!accounts[foundAddress].curator) { //add request to curate ()
                 accounts[foundAddress].curator = null; //false = nothing, null = requested, true = curator
         
@@ -680,4 +697,23 @@ function encrypt(input,seed) {
     encrypted += salt;
     
     return encrypted;
+}
+
+function imageToText(source) {
+    var image = new Image();
+    
+    image.crossOrigin = "Anonymous";
+    
+    image.onload = function() {
+        var canvas = document.createElement("CANVAS"); //draw to canvas
+        var ctx = canvas.getContext("2d");
+        
+        canvas.height = this.naturalHeight;
+        canvas.width = this.naturalWidth;
+        ctx.drawImage(this, 0, 0);
+        
+        return canvas.toDataURL("image/png"); //convert to a data string
+    };
+    
+    image.src = source;
 }
