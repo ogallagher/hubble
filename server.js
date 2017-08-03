@@ -18,6 +18,7 @@ var fs = require("fs");
 
 var games = require("./games.json");
 var accounts = require("./accounts.json");
+var submissions = require("./submissions.json");
 
 /*
  ORDER
@@ -105,7 +106,7 @@ app.get("/featured", function(request,response) {
         response.send(JSON.stringify(result));
         });
 
-app.get("/register", function(request, response) {
+app.get("/register", function(request,response) {
         //check if user already exists, check if email is valid, and return the appropriate messages
         var now = new Date();
         
@@ -170,7 +171,7 @@ app.get("/register", function(request, response) {
         }
         });
 
-app.get("/login", function (request, response) {
+app.get("/login", function (request,response) {
         //check that user is in accounts.json, check that accounts[i].password == proposedAccount.password, and return the appropriate messages
         var proposedAccount = request.query.account;
         var foundAddress = -1;
@@ -210,7 +211,7 @@ app.get("/login", function (request, response) {
         }
         });
 
-app.get("/rate", function (request, response) {
+app.get("/rate", function (request,response) {
         //handle clients' requests to rate games
         var account = request.query.account;
         var newRating = parseFloat(request.query.rating);
@@ -309,6 +310,93 @@ app.get("/rate", function (request, response) {
                 result.reviews = accounts[foundAddress].reviews,
                 result.rating = newReview.rating
             }
+        }
+        
+        response.send(JSON.stringify(result));
+        });
+
+app.get("/curate", function (request,response) {
+        var address = request.query.address;
+        var newGame = request.query.game;
+        
+        var result = {
+            message: ""
+        }
+        
+        var emailSubject = "";
+        var emailText = "";
+        
+        //find user in accounts[]
+        var foundAddress = -1;
+        
+        for (var i=0; i<accounts.length && foundAddress == -1; i++) {
+            if (address == accounts[i].address) {
+                foundAddress = i;
+            }
+        }
+        
+        if (foundAddress == -1) {
+            //user not found
+            result.message = "ERROR:gone";
+        }
+        else {
+            if (!accounts[foundAddress].curator) { //add request to curate ()
+                accounts[foundAddress].curator = null; //false = nothing, null = requested, true = curator
+        
+                emailSubject = "New Curator: " + address;
+            }
+            else { //add new game submission to submissions.json
+                submissions.push(newGame);
+        
+                emailSubject = "New Game: " + newGame.name;
+                emailText = "Name: " + newGame.name + "\nURL: " + newGame.url + "\nAuthors: ";
+                for (var i=0; i<newGame.authors.length; i++) {
+                    emailText += newGame.authors[i];
+                    if (i<newGame.authors.length) {
+                        emailText += ", ";
+                    }
+                }
+                emailText += "\nDescription: " + newGame.description + "\nRating: " + newGame.rating + "\nTags: ";
+                for (var i=0; i<newGame.tags.length; i++) {
+                    emailText += newGame.tags[i];
+                    if (i<newGame.tags.length) {
+                        emailText += ", ";
+                    }
+                }
+            }
+        
+            transporter.sendMail({
+                                     from: emailTemplate.from,
+                                     to: emailTemplate.from,
+                                     subject: emailSubject,
+                                     text: emailText
+                                 },
+                                 function (error, info) {
+                                     if (error) {
+                                         result.message = "ERROR:email";
+                                         
+                                         response.send(JSON.stringify(result));
+                                     }
+                                     else {
+                                         result.message = "SUCCESS";
+                                         
+                                         //update accounts.json
+                                         if (!fileAccounts()) {
+                                             result.message = "ERROR:write";
+                                         }
+                                         
+                                         //update submissions.json
+                                         if (!fileSubmissions()) {
+                                             result.message = "ERROR:write";
+                                         }
+                                         
+                                         if (result.message.length == 0) {
+                                             result.message = "SUCCESS";
+                                         }
+                                 
+                                         response.send(JSON.stringify(result));
+                                     }
+                                 });
         }
         
         response.send(JSON.stringify(result));
@@ -520,8 +608,20 @@ function fileAccounts() {
     return result;
 }
 
+function fileSubmissions() {
+    var result = true;
+    
+    fs.writeFile("submissions.json", JSON.stringify(submissions), function(err) {
+                 if (err) {
+                     result = false;
+                 }
+                 });
+    
+    return result;
+}
+
 function encrypt(input,seed) {
-    var available = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()[]{}<>-+=/|\,.?~;:"; //no spaces allowed
+    var available = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()[]{}<>-+=/|\\,.?~;:"; //no spaces allowed
     var salt = "";
     
     if (seed == null) {
@@ -538,12 +638,18 @@ function encrypt(input,seed) {
     var bits = "";
     
     for (var i=0; i<encrypted.length; i++) {
-        bits += encrypted.charCodeAt(i).toString(2) + " ";
+        var byte = encrypted.charCodeAt(i).toString(2);
+        
+        while (byte.length < 8) {
+            byte = "0" + byte;
+        }
+        
+        bits += byte + " ";
     }
     bits = bits.substring(0,bits.length-1);
     
     for (var i=0; i<bits.length; i++) {
-        if (i%3 > 0 && bits.charAt(i) != " ") {
+        if ((i%9 == 4 || i%9 == 6) && bits.charAt(i) != " ") { //the bit alternation placement ensures that the output characters are still within my available characters
             if (bits.charAt(i) == "0") {
                 bits = bits.substring(0,i) + "1" + bits.substring(i+1);
             }
@@ -564,8 +670,9 @@ function encrypt(input,seed) {
         }
         
         var byte = bits.substring(start,end);
+        var character = String.fromCharCode(parseInt(byte,2));
         
-        encrypted += String.fromCharCode(parseInt(byte,2));
+        encrypted += character;
         
         start = end+1;
     }
