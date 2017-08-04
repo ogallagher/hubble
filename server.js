@@ -155,8 +155,8 @@ app.get("/search", function(request,response) {
             }
             else {
                 if (result.message.length == 0) {
-                    result.name: resultNames,
-                    result.tags: resultTags
+                    result.name = resultNames;
+                    result.tags = resultTags;
                 }
         
                 response.send(JSON.stringify(result));
