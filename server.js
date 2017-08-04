@@ -61,36 +61,109 @@ app.get("/search", function(request,response) {
         var searchTerms = request.query.terms;
         var resultNames = [];
         var resultTags = [];
+        var result = {
+            message: "",
+            name: null,
+            tags: null
+        };
         
-        for (var i=0; i<searchTerms.length && (resultNames.length<RESULT_MAX || resultTags.length<RESULT_MAX); i++) {
-            if (searchTerms[i].length > 0) {
-                //name search
-                var gamesByName = searchGamesByName(searchTerms[i],RESULT_MAX-resultNames.length,true);
+        function nextResults(counter) {
+            if (counter<searchTerms.length && (resultNames.length<RESULT_MAX || resultTags.length<RESULT_MAX)) {
+                if (searchTerms[counter].length > 0) {
+                    var gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,true);  //name search
+                    var gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
         
-                for (var g=0; g<gamesByName.length; g++) {
-                    if (resultNames.indexOf(gamesByName[g]) == -1) {
-                        resultNames.push(gamesByName[g]);
+                    function nextGameByTag(tagCounter) {
+                        if (tagCounter < gamesByTag.length) {
+                            if (resultTags.indexOf(gamesByTag[tagCounter]) == -1) {
+                                fs.readFile("./game_icons/" + gamesByTag[tagCounter].name + ".png", function(err, data) {
+                                    if (err) {
+                                        result.message = "ERROR:read";
+                                    }
+                                    else {
+                                        var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                                        
+                                        var game = {
+                                            name: gamesByTag[tagCounter].name,
+                                            authors: gamesByTag[tagCounter].authors,
+                                            description: gamesByTag[tagCounter].description,
+                                            tags: gamesByTag[tagCounter].tags,
+                                            rating: gamesByTag[tagCounter].rating,
+                                            reviews: gamesByTag[tagCounter].reviews,
+                                            featured: gamesByTag[tagCounter].featured,
+                                            url: gamesByTag[tagCounter].url,
+                                            icon: iconData
+                                        }
+                                        
+                                        resultTags.push(game);
+                                        
+                                        nextGameByTag(tagCounter+1);
+                                    }
+                                });
+                            }
+                            else {
+                                nextGameByTag(tagCounter+1);
+                            }
+                        }
+                        else {
+                            nextResults(counter+1);
+                        }
                     }
+        
+                    function nextGameByName(nameCounter) {
+                        if (nameCounter < gamesByName.length) {
+                            if (resultNames.indexOf(gamesByName[nameCounter]) == -1) {
+                                fs.readFile("./game_icons/" + gamesByName[nameCounter].name + ".png", function(err, data) {
+                                    if (err) {
+                                        result.message = "ERROR:read";
+                                    }
+                                    else {
+                                        var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                                        
+                                        var game = {
+                                            name: gamesByName[nameCounter].name,
+                                            authors: gamesByName[nameCounter].authors,
+                                            description: gamesByName[nameCounter].description,
+                                            tags: gamesByName[nameCounter].tags,
+                                            rating: gamesByName[nameCounter].rating,
+                                            reviews: gamesByName[nameCounter].reviews,
+                                            featured: gamesByName[nameCounter].featured,
+                                            url: gamesByName[nameCounter].url,
+                                            icon: iconData
+                                        }
+                                        
+                                        resultNames.push(game);
+                                        
+                                        nextGameByName(nameCounter+1);
+                                    }
+                                });
+                            }
+                            else {
+                                nextGameByName(nameCounter+1);
+                            }
+                        }
+                        else {
+                            nextGameByTag(0);
+                        }
+                    }
+        
+                    nextGameByName(0);
+                }
+                else {
+                    nextResults(counter+1);
+                }
+            }
+            else {
+                if (result.message.length == 0) {
+                    result.name: resultNames,
+                    result.tags: resultTags
                 }
         
-                //tag search
-                var gamesByTag = searchGamesByTag(searchTerms[i],RESULT_MAX-resultTags.length);
-        
-                for (var g=0; g<gamesByTag.length; g++) {
-                    if (resultTags.indexOf(gamesByTag[g]) == -1) {
-                        resultTags.push(gamesByTag[g]);
-                    }
-                }
+                response.send(JSON.stringify(result));
             }
         }
         
-        var result = {
-                        name: resultNames,
-                        tags: resultTags
-                     };
-        
-        response.send(JSON.stringify(result));
-        
+        nextResults(0);
         });
 
 app.get("/featured", function(request,response) {
@@ -99,30 +172,35 @@ app.get("/featured", function(request,response) {
         
         function nextResult(counter) {
             if (counter < games.byName.length && result.length < RESULT_MAX) {
-                fs.readFile("./game_icons/" + games.byName[counter].name + ".png", function(err, data) {
-                            if (err) {
-                                result.message = "ERROR:read";
-                            }
-                            else {
-                                var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
-                                
-                                var game = {
-                                    name: games.byName[counter].name,
-                                    authors: games.byName[counter].authors,
-                                    description: games.byName[counter].description,
-                                    tags: games.byName[counter].tags,
-                                    rating: games.byName[counter].rating,
-                                    reviews: games.byName[counter].reviews,
-                                    featured: games.byName[counter].featured,
-                                    url: games.byName[counter].url,
-                                    icon: iconData //the conversion of the image to a base64 string allows the image to be transferred within a JSON message
+                if (games.byName[counter].featured) {
+                    fs.readFile("./game_icons/" + games.byName[counter].name + ".png", function(err, data) {
+                                if (err) {
+                                    result.message = "ERROR:read";
                                 }
-                                
-                                result.push(game);
-                                
-                                nextResult(counter+1);
-                            }
-                            });
+                                else {
+                                    var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                                    
+                                    var game = {
+                                        name: games.byName[counter].name,
+                                        authors: games.byName[counter].authors,
+                                        description: games.byName[counter].description,
+                                        tags: games.byName[counter].tags,
+                                        rating: games.byName[counter].rating,
+                                        reviews: games.byName[counter].reviews,
+                                        featured: games.byName[counter].featured,
+                                        url: games.byName[counter].url,
+                                        icon: iconData //the conversion of the image to a base64 string allows the image to be transferred within a JSON message
+                                    }
+                                    
+                                    result.push(game);
+                                    
+                                    nextResult(counter+1);
+                                }
+                                });
+                }
+                else {
+                    nextResult(counter+1);
+                }
             }
             else {
                 response.send(JSON.stringify(result));
