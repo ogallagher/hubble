@@ -442,6 +442,8 @@ app.get("/curate", function (request,response) {
         if (foundAddress == -1) {
             //user not found
             result.message = "ERROR:gone";
+        
+            response.send(JSON.stringify(result));
         }
         else {
             if (accounts[foundAddress].curator == null) {
@@ -505,8 +507,6 @@ app.get("/curate", function (request,response) {
                                      }
                                  });
         }
-        
-        response.send(JSON.stringify(result));
         });
 
 var server = app.listen(port,ip);
