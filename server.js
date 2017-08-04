@@ -97,7 +97,7 @@ app.get("/featured", function(request,response) {
         //search games by game.featured
         var result = [];
         
-        function nextResult(counter) = {
+        function nextResult(counter) {
             if (counter < games.byName.length && result.length < RESULT_MAX) {
                 fs.readFile("./game_icons/" + games.byName[counter].name + ".png", function(err, data) {
                             if (err) {
