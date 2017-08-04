@@ -97,33 +97,39 @@ app.get("/featured", function(request,response) {
         //search games by game.featured
         var result = [];
         
-        for (var i=0; i<games.byName.length && result.length < RESULT_MAX; i++) {
-            if (games.byName[i].featured) {
-                fs.readFile("./game_icons/" + games.byName[i].name + ".png", function(err, data) {
+        function nextResult(counter) = {
+            if (counter < games.byName.length && result.length < RESULT_MAX) {
+                fs.readFile("./game_icons/" + games.byName[counter].name + ".png", function(err, data) {
                             if (err) {
-                                return err;
+                                result.message = "ERROR:read";
                             }
-                            
-                            var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
-                            
-                            var game = {
-                                name: games.byName[i].name,
-                                authors: games.byName[i].authors,
-                                description: games.byName[i].description,
-                                tags: games.byName[i].tags,
-                                rating: games.byName[i].rating,
-                                reviews: games.byName[i].reviews,
-                                featured: games.byName[i].featured,
-                                url: games.byName[i].url,
-                                icon: iconData //the conversion of the image to a base64 string allows the image to be transferred within a JSON message
+                            else {
+                                var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                                
+                                var game = {
+                                    name: games.byName[counter].name,
+                                    authors: games.byName[counter].authors,
+                                    description: games.byName[counter].description,
+                                    tags: games.byName[counter].tags,
+                                    rating: games.byName[counter].rating,
+                                    reviews: games.byName[counter].reviews,
+                                    featured: games.byName[counter].featured,
+                                    url: games.byName[counter].url,
+                                    icon: iconData //the conversion of the image to a base64 string allows the image to be transferred within a JSON message
+                                }
+                                
+                                result.push(games.byName[i]);
+                                
+                                nextResult(counter+1);
                             }
-                            
-                            result.push(games.byName[i]);
                             });
+            }
+            else {
+                response.send(JSON.stringify(result));
             }
         }
         
-        response.send(JSON.stringify(result));
+        nextResult(0);
         });
 
 app.get("/register", function(request,response) {
