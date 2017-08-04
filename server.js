@@ -99,21 +99,27 @@ app.get("/featured", function(request,response) {
         
         for (var i=0; i<games.byName.length && result.length < RESULT_MAX; i++) {
             if (games.byName[i].featured) {
-                var iconData = imageToText("./game_icons/" + games.byName[i].name + ".png");
-        
-                var game = {
-                    name: games.byName[i].name,
-                    authors: games.byName[i].authors,
-                    description: games.byName[i].description,
-                    tags: games.byName[i].tags,
-                    rating: games.byName[i].rating,
-                    reviews: games.byName[i].reviews,
-                    featured: games.byName[i].featured,
-                    url: games.byName[i].url,
-                    icon: iconData //the conversion of the image to a base64 string for transfer was taken from HaNdTriX at stackoverflow
-                }
-                
-                result.push(games.byName[i]);
+                fs.readFile("./game_icons/" + games.byName[i].name + ".png", function(err, data) {
+                            if (err) {
+                                return err;
+                            }
+                            
+                            var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                            
+                            var game = {
+                                name: games.byName[i].name,
+                                authors: games.byName[i].authors,
+                                description: games.byName[i].description,
+                                tags: games.byName[i].tags,
+                                rating: games.byName[i].rating,
+                                reviews: games.byName[i].reviews,
+                                featured: games.byName[i].featured,
+                                url: games.byName[i].url,
+                                icon: iconData //the conversion of the image to a base64 string allows the image to be transferred within a JSON message
+                            }
+                            
+                            result.push(games.byName[i]);
+                            });
             }
         }
         
@@ -697,23 +703,4 @@ function encrypt(input,seed) {
     encrypted += salt;
     
     return encrypted;
-}
-
-function imageToText(source) {
-    var image = new Image();
-    
-    image.crossOrigin = "Anonymous";
-    
-    image.onload = function() {
-        var canvas = document.createElement("CANVAS"); //draw to canvas
-        var ctx = canvas.getContext("2d");
-        
-        canvas.height = this.naturalHeight;
-        canvas.width = this.naturalWidth;
-        ctx.drawImage(this, 0, 0);
-        
-        return canvas.toDataURL("image/png"); //convert to a data string
-    };
-    
-    image.src = source;
 }
