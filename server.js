@@ -118,7 +118,7 @@ app.get("/featured", function(request,response) {
                                     icon: iconData //the conversion of the image to a base64 string allows the image to be transferred within a JSON message
                                 }
                                 
-                                result.push(games.byName[i]);
+                                result.push(game);
                                 
                                 nextResult(counter+1);
                             }
