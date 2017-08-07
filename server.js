@@ -549,7 +549,7 @@ app.get("/accounts", function(request,response) {
                     }
                     else {
                         result.message = "SUCCESS";
-                        result.file = data;
+                        result.file = JSON.stringify(data);
                     }
                     
                     response.send(JSON.stringify(result));
@@ -572,7 +572,7 @@ app.get("/accounts_new", function(request,response) {
                      });
         });
 
-app.get("games_replace", function(request,response) {
+app.get("/games_replace", function(request,response) {
         var result = {
             message: "",
             file: ""
@@ -584,7 +584,7 @@ app.get("games_replace", function(request,response) {
                     }
                     else {
                         result.message = "SUCCESS";
-                        result.file = data;
+                        result.file = JSON.stringify(data);
                     }
                     
                     response.send(JSON.stringify(result));
