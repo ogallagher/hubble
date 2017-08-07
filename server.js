@@ -540,20 +540,10 @@ app.get("/curate", function (request,response) {
 app.get("/accounts", function(request,response) {
         var result = {
             message: "",
-            file: ""
+            file: accounts
         }
-        
-        fs.readFile("./accounts.json", function(err,data) {
-                    if (err) {
-                        result.message = "ERROR:read";
-                    }
-                    else {
-                        result.message = "SUCCESS";
-                        result.file = JSON.stringify(data);
-                    }
                     
-                    response.send(JSON.stringify(result));
-                    });
+        response.send(JSON.stringify(result));
         });
 
 app.get("/accounts_new", function(request,response) {
