@@ -77,28 +77,30 @@ app.get("/search", function(request,response) {
                         if (tagCounter < gamesByTag.length) {
                             if (resultTags.indexOf(gamesByTag[tagCounter]) == -1) {
                                 fs.readFile("./game_icons/" + gamesByTag[tagCounter].name + ".png", function(err, data) {
+                                    var iconData = "";
+                                            
                                     if (err) {
                                         result.message = "ERROR:read";
                                     }
                                     else {
-                                        var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
-                                        
-                                        var game = {
-                                            name: gamesByTag[tagCounter].name,
-                                            authors: gamesByTag[tagCounter].authors,
-                                            description: gamesByTag[tagCounter].description,
-                                            tags: gamesByTag[tagCounter].tags,
-                                            rating: gamesByTag[tagCounter].rating,
-                                            reviews: gamesByTag[tagCounter].reviews,
-                                            featured: gamesByTag[tagCounter].featured,
-                                            url: gamesByTag[tagCounter].url,
-                                            icon: iconData
-                                        }
-                                        
-                                        resultTags.push(game);
-                                        
-                                        nextGameByTag(tagCounter+1);
+                                        iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
                                     }
+                                        
+                                    var game = {
+                                        name: gamesByTag[tagCounter].name,
+                                        authors: gamesByTag[tagCounter].authors,
+                                        description: gamesByTag[tagCounter].description,
+                                        tags: gamesByTag[tagCounter].tags,
+                                        rating: gamesByTag[tagCounter].rating,
+                                        reviews: gamesByTag[tagCounter].reviews,
+                                        featured: gamesByTag[tagCounter].featured,
+                                        url: gamesByTag[tagCounter].url,
+                                        icon: iconData
+                                    }
+                                    
+                                    resultTags.push(game);
+                                    
+                                    nextGameByTag(tagCounter+1);
                                 });
                             }
                             else {
@@ -114,28 +116,30 @@ app.get("/search", function(request,response) {
                         if (nameCounter < gamesByName.length) {
                             if (resultNames.indexOf(gamesByName[nameCounter]) == -1) {
                                 fs.readFile("./game_icons/" + gamesByName[nameCounter].name + ".png", function(err, data) {
+                                    var iconData = "";
+                                            
                                     if (err) {
                                         result.message = "ERROR:read";
                                     }
                                     else {
-                                        var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
-                                        
-                                        var game = {
-                                            name: gamesByName[nameCounter].name,
-                                            authors: gamesByName[nameCounter].authors,
-                                            description: gamesByName[nameCounter].description,
-                                            tags: gamesByName[nameCounter].tags,
-                                            rating: gamesByName[nameCounter].rating,
-                                            reviews: gamesByName[nameCounter].reviews,
-                                            featured: gamesByName[nameCounter].featured,
-                                            url: gamesByName[nameCounter].url,
-                                            icon: iconData
-                                        }
-                                        
-                                        resultNames.push(game);
-                                        
-                                        nextGameByName(nameCounter+1);
+                                        iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
                                     }
+                                    
+                                    var game = {
+                                        name: gamesByName[nameCounter].name,
+                                        authors: gamesByName[nameCounter].authors,
+                                        description: gamesByName[nameCounter].description,
+                                        tags: gamesByName[nameCounter].tags,
+                                        rating: gamesByName[nameCounter].rating,
+                                        reviews: gamesByName[nameCounter].reviews,
+                                        featured: gamesByName[nameCounter].featured,
+                                        url: gamesByName[nameCounter].url,
+                                        icon: iconData
+                                    }
+                                    
+                                    resultNames.push(game);
+                                    
+                                    nextGameByName(nameCounter+1);
                                 });
                             }
                             else {
@@ -168,34 +172,40 @@ app.get("/search", function(request,response) {
 
 app.get("/featured", function(request,response) {
         //search games by game.featured
-        var result = [];
+        var result = {
+            message: "",
+            games: []
+        };
         
         function nextResult(counter) {
-            if (counter < games.byName.length && result.length < RESULT_MAX) {
+            if (counter < games.byName.length && result.games.length < RESULT_MAX) {
                 if (games.byName[counter].featured) {
                     fs.readFile("./game_icons/" + games.byName[counter].name + ".png", function(err, data) {
+                                var iconData = "";
+                                
                                 if (err) {
                                     result.message = "ERROR:read";
                                 }
                                 else {
-                                    var iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
-                                    
-                                    var game = {
-                                        name: games.byName[counter].name,
-                                        authors: games.byName[counter].authors,
-                                        description: games.byName[counter].description,
-                                        tags: games.byName[counter].tags,
-                                        rating: games.byName[counter].rating,
-                                        reviews: games.byName[counter].reviews,
-                                        featured: games.byName[counter].featured,
-                                        url: games.byName[counter].url,
-                                        icon: iconData //the conversion of the image to a base64 string allows the image to be transferred within a JSON message
-                                    }
-                                    
-                                    result.push(game);
-                                    
-                                    nextResult(counter+1);
+                                    iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
                                 }
+                                    
+                                var game = {
+                                    name: games.byName[counter].name,
+                                    authors: games.byName[counter].authors,
+                                    description: games.byName[counter].description,
+                                    tags: games.byName[counter].tags,
+                                    rating: games.byName[counter].rating,
+                                    reviews: games.byName[counter].reviews,
+                                    featured: games.byName[counter].featured,
+                                    url: games.byName[counter].url,
+                                    icon: iconData //the conversion of the image to a base64 string allows the image to be transferred within a JSON message
+                                }
+                                
+                                result.games.push(game);
+                                
+                                nextResult(counter+1);
+                                
                                 });
                 }
                 else {
@@ -303,6 +313,9 @@ app.get("/login", function (request,response) {
         
             if (proposed == stored) {
                 result.message = "SUCCESS";
+                if (foundAddress == 0) {
+                    result.message += ":admin";
+                }
                 result.reviews = accounts[foundAddress].reviews;
                 result.curator = accounts[foundAddress].curator;
                 result.bday = accounts[foundAddress].bday;
@@ -452,61 +465,146 @@ app.get("/curate", function (request,response) {
             if (!accounts[foundAddress].curator) { //add request to curate ()
                 accounts[foundAddress].curator = null; //false = nothing, null = requested, true = curator
         
-                emailSubject = "New Curator: " + address;
+                if (!fileAccounts()) {
+                    result.message = "ERROR:write";
+                }
+                else {
+                    emailSubject = "New Curator: " + address;
+                }
             }
             else { //add new game submission to submissions.json
                 submissions.push(newGame);
         
-                emailSubject = "New Game: " + newGame.name;
-                emailText = "Name: " + newGame.name + "\nURL: " + newGame.url + "\nAuthors: ";
-                for (var i=0; i<newGame.authors.length; i++) {
-                    emailText += newGame.authors[i];
-                    if (i<newGame.authors.length) {
-                        emailText += ", ";
-                    }
+                if (!fileSubmissions) {
+                    result.message = "ERROR:write";
                 }
-                emailText += "\nDescription: " + newGame.description + "\nRating: " + newGame.rating + "\nTags: ";
-                for (var i=0; i<newGame.tags.length; i++) {
-                    emailText += newGame.tags[i];
-                    if (i<newGame.tags.length) {
-                        emailText += ", ";
+                else {
+                    emailSubject = "New Game: " + newGame.name;
+                    emailText = "Name: " + newGame.name + "\nURL: " + newGame.url + "\nAuthors: ";
+                    for (var i=0; i<newGame.authors.length; i++) {
+                        emailText += newGame.authors[i];
+                        if (i<newGame.authors.length) {
+                            emailText += ", ";
+                        }
+                    }
+                    emailText += "\nDescription: " + newGame.description + "\nRating: " + newGame.rating + "\nTags: ";
+                    for (var i=0; i<newGame.tags.length; i++) {
+                        emailText += newGame.tags[i];
+                        if (i<newGame.tags.length) {
+                            emailText += ", ";
+                        }
                     }
                 }
             }
         
-            transporter.sendMail({
-                                     from: emailTemplate.from,
-                                     to: emailTemplate.from,
-                                     subject: emailSubject,
-                                     text: emailText
-                                 },
-                                 function (error, info) {
-                                     if (error) {
-                                         result.message = "ERROR:email";
-                                         
-                                         response.send(JSON.stringify(result));
-                                     }
-                                     else {
-                                         result.message = "SUCCESS";
-                                         
-                                         //update accounts.json
-                                         if (!fileAccounts()) {
-                                             result.message = "ERROR:write";
+            if (result.message.length == 0) {
+                transporter.sendMail({
+                                         from: emailTemplate.from,
+                                         to: emailTemplate.from,
+                                         subject: emailSubject,
+                                         text: emailText
+                                     },
+                                     function (error, info) {
+                                         if (error) {
+                                             result.message = "ERROR:email";
+                                             
+                                             response.send(JSON.stringify(result));
                                          }
-                                         
-                                         //update submissions.json
-                                         if (!fileSubmissions()) {
-                                             result.message = "ERROR:write";
-                                         }
-                                         
-                                         if (result.message.length == 0) {
+                                         else {
                                              result.message = "SUCCESS";
+                                             
+                                             //update accounts.json
+                                             if (!fileAccounts()) {
+                                                 result.message = "ERROR:write";
+                                             }
+                                             
+                                             //update submissions.json
+                                             if (!fileSubmissions()) {
+                                                 result.message = "ERROR:write";
+                                             }
+                                             
+                                             if (result.message.length == 0) {
+                                                 result.message = "SUCCESS";
+                                             }
+                                     
+                                             response.send(JSON.stringify(result));
                                          }
-                                 
-                                         response.send(JSON.stringify(result));
-                                     }
-                                 });
+                                     });
+            }
+            else {
+                response.send(JSON.stringify(result));
+            }
         }
+        });
+
+app.get("/accounts", function(request,response) {
+        var result = {
+            message: "",
+            file: ""
+        }
+        
+        fs.readFile("./accounts.json", function(err,data) {
+                    if (err) {
+                        result.message = "ERROR:read";
+                    }
+                    else {
+                        result.message = "SUCCESS";
+                        result.file = data;
+                    }
+                    
+                    response.send(JSON.stringify(result));
+                    });
+        });
+
+app.get("/accounts_new", function(request,response) {
+        var result = {
+            message: ""
+        };
+        
+        fs.writeFile("accounts.json", request.query.file, function(err) {
+                     if (err) {
+                         result.message = "ERROR:write";
+                     }
+                     else {
+                         result.message = "SUCCESS";
+                         accounts = require("./accounts.json");
+                     }
+                     });
+        });
+
+app.get("games_replace", function(request,response) {
+        var result = {
+            message: "",
+            file: ""
+        }
+        
+        fs.readFile("./games.json", function(err,data) {
+                    if (err) {
+                        result.message = "ERROR:read";
+                    }
+                    else {
+                        result.message = "SUCCESS";
+                        result.file = data;
+                    }
+                    
+                    response.send(JSON.stringify(result));
+                    });
+        });
+
+app.get("/games_replace_new", function(request,response) {
+        var result = {
+            message: ""
+        };
+        
+        fs.writeFile("games.json", request.query.file, function(err) {
+                     if (err) {
+                         result.message = "ERROR:write";
+                     }
+                     else {
+                         result.message = "SUCCESS";
+                         games = require("./games.json");
+                     }
+                     });
         });
 
 var server = app.listen(port,ip);
