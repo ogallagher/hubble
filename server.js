@@ -539,7 +539,6 @@ app.get("/curate", function (request,response) {
 
 app.get("/accounts", function(request,response) {
         var result = {
-            message: "",
             file: accounts
         }
                     
@@ -551,7 +550,7 @@ app.get("/accounts_new", function(request,response) {
             message: ""
         };
         
-        fs.writeFile("accounts.json", request.query.file, function(err) {
+        fs.writeFile("accounts.json", JSON.stringify(request.query.file), function(err) {
                      if (err) {
                          result.message = "ERROR:write";
                      }
@@ -564,21 +563,10 @@ app.get("/accounts_new", function(request,response) {
 
 app.get("/games_replace", function(request,response) {
         var result = {
-            message: "",
-            file: ""
+            file: games
         }
         
-        fs.readFile("./games.json", function(err,data) {
-                    if (err) {
-                        result.message = "ERROR:read";
-                    }
-                    else {
-                        result.message = "SUCCESS";
-                        result.file = JSON.stringify(data);
-                    }
-                    
-                    response.send(JSON.stringify(result));
-                    });
+        response.send(JSON.stringify(result));
         });
 
 app.get("/games_replace_new", function(request,response) {
@@ -586,7 +574,7 @@ app.get("/games_replace_new", function(request,response) {
             message: ""
         };
         
-        fs.writeFile("games.json", request.query.file, function(err) {
+        fs.writeFile("games.json", JSON.stringify(request.query.file), function(err) {
                      if (err) {
                          result.message = "ERROR:write";
                      }
