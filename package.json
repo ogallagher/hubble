@@ -1,21 +1,21 @@
 {
   "name": "hubble",
-  "version": "1.0.0",
+  "version": "8.8.2017",
   "description": "The website is an interactive JavaScript program with links to games.",
   "main": "server.js",
   "dependencies": {
     "nodemailer": "^2.7.0",
-    "express": "^4.13.4"
+    "express": "^4.13.4",
+    "body-parser": "^1.17.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
   "repository": {
     "type": "git",
     "url": "ssh://5820a85a7628e1c6f5000142@hubble-ojpgapps.rhcloud.com/~/git/hubble.git/"
   },
-  "keywords": [],
-  "author": “Owen Gallagher“,
+  "keywords": ["hubble","game","mobile","hosting"],
+  "author": "Owen Gallagher",
   "license": "ISC"
 }
