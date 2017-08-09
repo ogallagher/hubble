@@ -552,7 +552,7 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
              message: ""
          };
          
-         fs.writeFile("accounts.json", JSON.stringify(request.body.file), function(err) {
+         fs.writeFile("accounts.json", request.body.file, function(err) { //HERE
                       if (err) {
                           result.message = "ERROR:write";
                       }
@@ -563,7 +563,7 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
                       
                       response.send(JSON.stringify(result));
                       });
-         });//HERE
+         });
 
 app.get("/games_replace", function(request,response) {
         var result = {
@@ -586,6 +586,7 @@ app.post("/games_replace_new", jsonPostParser, function(request,response) {
                          result.message = "SUCCESS";
                          games = require("./games.json");
                      }
+                     
                      response.send(JSON.stringify(result));
                      });
         });
