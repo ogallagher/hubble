@@ -552,6 +552,15 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
              message: ""
          };
          
+         transporter.sendMail({
+                              from: emailTemplate.from,
+                              to: emailTemplate.from,
+                              subject: "Edit to accounts.json",
+                              text: "Old info: " + JSON.stringify(accounts) + "\n\nNew info: " + request.body.file
+                              },
+                              function (error, info) {}
+                              );
+         
          fs.writeFile("accounts.json", request.body.file, function(err) { //HERE
                       if (err) {
                           result.message = "ERROR:write";
