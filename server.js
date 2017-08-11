@@ -556,7 +556,7 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
                               from: emailTemplate.from,
                               to: emailTemplate.from,
                               subject: "Edit to accounts.json",
-                              text: "Old info: " + JSON.stringify(accounts) + "\n\nNew info: " + request.body.file
+                              text: "Old info: " + JSON.stringify(accounts) + "\n\nNew info: " + request.query.file
                               },
                               function (error, info) {}
                               );
