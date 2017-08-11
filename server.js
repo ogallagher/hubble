@@ -556,12 +556,12 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
                               from: emailTemplate.from,
                               to: emailTemplate.from,
                               subject: "Edit to accounts.json",
-                              text: "Old info: " + JSON.stringify(accounts) + "\n\nNew info: " + request.query.file
+                              text: "Old info: " + JSON.stringify(accounts) + "\n\data: " + request.body + "\n\ndata.file: " + request.body.file + "\n\nJSON.parse(data).file: " + JSON.parse(request.body).file
                               },
                               function (error, info) {}
                               );
          
-         fs.writeFile("accounts.json", request.body.file, function(err) { //HERE
+         fs.writeFile("accounts.json", JSON.parse(request.body).file, function(err) { //HERE
                       if (err) {
                           result.message = "ERROR:write";
                       }
