@@ -17,6 +17,7 @@ var emailTemplate = {
                     };
 
 var fs = require("fs");
+var serverDirectoryPath = "~/app-root/repo/";
 
 var games = require("./games.json");
 var accounts = require("./accounts.json");
@@ -552,7 +553,7 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
              message: ""
          };
          
-         fs.writeFile("./accounts.json", request.body.file, function(err) { //HERE
+         fs.writeFile(serverDirectoryPath + "accounts.json", request.body.file, function(err) { //HERE
                       if (err) {
                           result.message = "ERROR:write";
                       }
@@ -578,7 +579,7 @@ app.post("/games_replace_new", jsonPostParser, function(request,response) {
             message: ""
         };
         
-        fs.writeFile("./games.json", request.body.file, function(err) {
+        fs.writeFile(serverDirectoryPath + "games.json", request.body.file, function(err) {
                      if (err) {
                          result.message = "ERROR:write";
                      }
@@ -775,7 +776,7 @@ function addGameByRating(indexByName,rating) {
 function fileGames() {
     var result = true;
     
-    fs.writeFile("./games.json", JSON.stringify(games), function(err) {
+    fs.writeFile(serverDirectoryPath + "games.json", JSON.stringify(games), function(err) {
                  if (err) {
                      result = false;
                  }
@@ -788,7 +789,7 @@ function fileGames() {
 function fileAccounts() {
     var result = true;
     
-    fs.writeFile("./accounts.json", JSON.stringify(accounts), function(err) {
+    fs.writeFile(serverDirectoryPath + "accounts.json", JSON.stringify(accounts), function(err) {
                  if (err) {
                      result = false;
                  }
@@ -800,7 +801,7 @@ function fileAccounts() {
 function fileSubmissions() {
     var result = true;
     
-    fs.writeFile("./submissions.json", JSON.stringify(submissions), function(err) {
+    fs.writeFile(serverDirectoryPath + "submissions.json", JSON.stringify(submissions), function(err) {
                  if (err) {
                      result = false;
                  }
