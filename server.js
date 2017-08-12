@@ -55,7 +55,7 @@ var emailTemplate = {
     from: "hubble <hubbleojpgapps@gmail.com>",
     subject: "Hubble Account Information"
 };
-var serverDirectoryPath = process.env.OPENSHIFT_NODEJS_REPO_DIR; //"~/app-root/repo/";
+var serverDirectoryPath = process.env.OPENSHIFT_REPO_DIR + "/"; //"~/app-root/repo/";
 
 app.use(express.static("public"));
 
