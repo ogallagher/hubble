@@ -11,13 +11,8 @@ var transporter = nodemailer.createTransport({
                                                 pass: "pBC-6DT-hwN-UxG"
                                              }
                                              });
-var emailTemplate = {
-                    from: "hubble <hubbleojpgapps@gmail.com>",
-                    subject: "Hubble Account Information"
-                    };
 
 var fs = require("fs");
-var serverDirectoryPath = "~/app-root/repo/";
 
 var games = require("./games.json");
 var accounts = require("./accounts.json");
@@ -56,6 +51,11 @@ var ip = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
 
 var RESULT_MAX = 10; //the number of search results will not exceed RESULT_MAX
 var alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+var emailTemplate = {
+    from: "hubble <hubbleojpgapps@gmail.com>",
+    subject: "Hubble Account Information"
+};
+var serverDirectoryPath = process.env.OPENSHIFT_NODEJS_REPO_DIR; //"~/app-root/repo/";
 
 app.use(express.static("public"));
 
