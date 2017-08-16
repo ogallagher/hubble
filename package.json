@@ -1,6 +1,6 @@
 {
   "name": "hubble",
-  "version": "8.8.2017",
+  "version": "8.15.2017",
   "description": "The website is an interactive JavaScript program with links to games.",
   "main": "server.js",
   "dependencies": {

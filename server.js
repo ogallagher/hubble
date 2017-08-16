@@ -55,7 +55,7 @@ var emailTemplate = {
     from: "hubble <hubbleojpgapps@gmail.com>",
     subject: "Hubble Account Information"
 };
-var serverDirectoryPath = process.env.OPENSHIFT_REPO_DIR + "/"; //"~/app-root/repo/";
+var serverDirectoryPath = process.env.OPENSHIFT_REPO_DIR + "/";
 
 app.use(express.static("public"));
 
@@ -553,16 +553,25 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
              message: ""
          };
          
-         fs.writeFile(serverDirectoryPath + "accounts.json", request.body.file, function(err) { //HERE
+         fs.writeFile(serverDirectoryPath + "temporary-accounts.json", request.body.file, "utf8", function(err) {
                       if (err) {
                           result.message = "ERROR:write";
+                          console.log(err);
                       }
                       else {
-                          result.message = "SUCCESS";
-                          accounts = require("./accounts.json");
+                          fs.rename(serverDirectoryPath + "temporary-accounts.json", serverDirectoryPath + "accounts.json", function(err) {
+                                    if (err) {
+                                        result.message = "ERROR:write";
+                                        console.log(err);
+                                    }
+                                    else {
+                                        result.message = "SUCCESS";
+                                        accounts = require("./accounts.json");
+                                    
+                                        response.send(JSON.stringify(result));
+                                    }
+                                    });
                       }
-                      
-                      response.send(JSON.stringify(result));
                       });
          });
 
@@ -579,11 +588,23 @@ app.post("/games_replace_new", jsonPostParser, function(request,response) {
             message: ""
         };
         
-        fs.writeFile(serverDirectoryPath + "games.json", request.body.file, function(err) {
+        fs.writeFile(serverDirectoryPath + "temporary-games.json", request.body.file, "utf8", function(err) {
                      if (err) {
                          result.message = "ERROR:write";
                      }
                      else {
+                         fs.rename(serverDirectoryPath + "temporary-games.json", serverDirectoryPath + "games.json", function(err) {
+                                   if (err) {
+                                       result.message = "ERROR:write";
+                                       console.log(err);
+                                   }
+                                   else {
+                                       result.message = "SUCCESS";
+                                       games = require("./games.json");
+                                       
+                                       response.send(JSON.stringify(result));
+                                   }
+                                   });
                          result.message = "SUCCESS";
                          games = require("./games.json");
                      }
