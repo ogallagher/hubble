@@ -465,7 +465,7 @@ app.get("/curate", function (request,response) {
             if (accounts[foundAddress].curator == null) {
                 result.message = "ERROR:curator";
             }
-            if (!accounts[foundAddress].curator) { //add request to curate ()
+            else if (!accounts[foundAddress].curator) { //add request to curate ()
                 accounts[foundAddress].curator = null; //false = nothing, null = requested, true = curator
         
                 if (!fileAccounts()) {
@@ -474,6 +474,9 @@ app.get("/curate", function (request,response) {
                 else {
                     emailSubject = "New Curator: " + address;
                 }
+            }
+            else if (newGame == null) {
+                result.message = "ERROR:write";
             }
             else { //add new game submission to submissions.json
                 submissions.push(newGame);
@@ -493,7 +496,7 @@ app.get("/curate", function (request,response) {
                     emailText += "\nDescription: " + newGame.description + "\nRating: " + newGame.rating + "\nTags: ";
                     for (var i=0; i<newGame.tags.length; i++) {
                         emailText += newGame.tags[i];
-                        if (i<newGame.tags.length) {
+                        if (i<newGame.tags.length-1) {
                             emailText += ", ";
                         }
                     }
