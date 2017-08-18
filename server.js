@@ -553,24 +553,18 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
              message: ""
          };
          
-         fs.writeFile(serverDirectoryPath + "temporary-accounts.json", request.body.file, "utf8", function(err) {
+         fs.writeFile(serverDirectoryPath + "accounts.json", request.body.file, "utf8", function(err) {
                       if (err) {
                           result.message = "ERROR:write";
-                          console.log(err);
+                      
+                          response.send(JSON.stringify(result));
                       }
                       else {
-                          fs.rename(serverDirectoryPath + "temporary-accounts.json", serverDirectoryPath + "accounts.json", function(err) {
-                                    if (err) {
-                                        result.message = "ERROR:write";
-                                        console.log(err);
-                                    }
-                                    else {
-                                        result.message = "SUCCESS";
-                                        accounts = require("./accounts.json");
-                                    
-                                        response.send(JSON.stringify(result));
-                                    }
-                                    });
+                          result.message = "SUCCESS";
+                      
+                          accounts = JSON.parse(request.body.file);
+                      
+                          response.send(JSON.stringify(result));
                       }
                       });
          });
@@ -584,33 +578,24 @@ app.get("/games_replace", function(request,response) {
         });
 
 app.post("/games_replace_new", jsonPostParser, function(request,response) {
-        var result = {
-            message: ""
-        };
-        
-        fs.writeFile(serverDirectoryPath + "temporary-games.json", request.body.file, "utf8", function(err) {
-                     if (err) {
-                         result.message = "ERROR:write";
-                     }
-                     else {
-                         fs.rename(serverDirectoryPath + "temporary-games.json", serverDirectoryPath + "games.json", function(err) {
-                                   if (err) {
-                                       result.message = "ERROR:write";
-                                       console.log(err);
-                                   }
-                                   else {
-                                       result.message = "SUCCESS";
-                                       games = require("./games.json");
-                                       
-                                       response.send(JSON.stringify(result));
-                                   }
-                                   });
-                         result.message = "SUCCESS";
-                         games = require("./games.json");
-                     }
-                     
-                     response.send(JSON.stringify(result));
-                     });
+         var result = {
+             message: ""
+         };
+         
+         fs.writeFile(serverDirectoryPath + "games.json", request.body.file, "utf8", function(err) {
+                      if (err) {
+                          result.message = "ERROR:write";
+                          
+                          response.send(JSON.stringify(result));
+                      }
+                      else {
+                          result.message = "SUCCESS";
+                          
+                          games = JSON.parse(request.body.file);
+                          
+                          response.send(JSON.stringify(result));
+                      }
+                      });
         });
 
 var server = app.listen(port,ip);
