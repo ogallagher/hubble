@@ -50,10 +50,15 @@ var port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
 var ip = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
 
 var RESULT_MAX = 10; //the number of search results will not exceed RESULT_MAX
+var ADMIN_ADDRESS = "hubbleojpgapps@gmail.com";
 var alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
 var emailTemplate = {
     from: "hubble <hubbleojpgapps@gmail.com>",
-    subject: "Hubble Account Information"
+    registerSubject: "Hubble Account Information",
+    curatorSubject: "New Curator: ",
+    submissionSubject: "New Game: * from ",
+    additionSubject: "Submission Accepted for "
+    
 };
 var serverDirectoryPath = process.env.OPENSHIFT_REPO_DIR + "/";
 
@@ -256,7 +261,7 @@ app.get("/register", function(request,response) {
             transporter.sendMail({
                                      from: emailTemplate.from,
                                      to: newAccount.address,
-                                     subject: emailTemplate.subject,
+                                     subject: emailTemplate.registerSubject,
                                      text: "Hi " + newAccount.address + ",\n\nWelcome to hubble! Since you've created an account, you will now be able to rate games and suggest the addition of new ones.\n\nSo you don't forget, here is your account information:\n\tUsername: " + newAccount.address + "\n\tPassword: " + newAccount.password + "\n\nThanks for your help!\nhttp://hubble-ojpgapps.rhcloud.com/"
                                  },
                                  function (error, info) {
@@ -316,7 +321,7 @@ app.get("/login", function (request,response) {
         
             if (proposed == stored) {
                 result.message = "SUCCESS";
-                if (foundAddress == 0) {
+                if (accounts[foundAddress].address == ADMIN_ADDRESS) {
                     result.message += ":admin";
                 }
                 result.reviews = accounts[foundAddress].reviews;
@@ -436,8 +441,10 @@ app.get("/rate", function (request,response) {
         });
 
 app.get("/curate", function (request,response) {
-        var address = request.query.address;
-        var newGame = request.query.game;
+        var submission = {
+            curator: request.query.curator,
+            game: request.query.game
+        };
         
         var result = {
             message: ""
@@ -450,7 +457,7 @@ app.get("/curate", function (request,response) {
         var foundAddress = -1;
         
         for (var i=0; i<accounts.length && foundAddress == -1; i++) {
-            if (address == accounts[i].address) {
+            if (submission.curator == accounts[i].address) {
                 foundAddress = i;
             }
         }
@@ -472,31 +479,31 @@ app.get("/curate", function (request,response) {
                     result.message = "ERROR:write";
                 }
                 else {
-                    emailSubject = "New Curator: " + address;
+                    emailSubject = emailTemplate.curatorSubject + submission.curator;
                 }
             }
-            else if (newGame == null) {
+            else if (submission.game == null) {
                 result.message = "ERROR:write";
             }
             else { //add new game submission to submissions.json
-                submissions.push(newGame);
+                submissions.push(submission);
         
                 if (!fileSubmissions) {
                     result.message = "ERROR:write";
                 }
                 else {
-                    emailSubject = "New Game: " + newGame.name;
-                    emailText = "Name: " + newGame.name + "\nURL: " + newGame.url + "\nAuthors: ";
-                    for (var i=0; i<newGame.authors.length; i++) {
-                        emailText += newGame.authors[i];
-                        if (i<newGame.authors.length) {
+                    emailSubject = emailTemplate.submissionSubject.substring(0,emailTemplate.submissionSubject.indexOf("*")) + submission.game.name + emailTemplate.submissionSubject.substring(emailTemplate.submissionSubject.indexOf("*")+1) + submission.curator;
+                    emailText = "Name: " + submission.game.name + "\nURL: " + submission.game.url + "\nAuthors: ";
+                    for (var i=0; i<submission.game.authors.length; i++) {
+                        emailText += submission.game.authors[i];
+                        if (i<submission.game.authors.length) {
                             emailText += ", ";
                         }
                     }
-                    emailText += "\nDescription: " + newGame.description + "\nRating: " + newGame.rating + "\nTags: ";
-                    for (var i=0; i<newGame.tags.length; i++) {
-                        emailText += newGame.tags[i];
-                        if (i<newGame.tags.length-1) {
+                    emailText += "\nDescription: " + submission.game.description + "\nRating: " + submission.game.rating + "\nTags: ";
+                    for (var i=0; i<submission.game.tags.length; i++) {
+                        emailText += submission.game.tags[i];
+                        if (i<submission.game.tags.length-1) {
                             emailText += ", ";
                         }
                     }
@@ -507,7 +514,7 @@ app.get("/curate", function (request,response) {
                 transporter.sendMail({
                                          from: emailTemplate.from,
                                          to: emailTemplate.from,
-                                         subject: emailSubject,
+                                         subject: emailTemplate.curatorSubject,
                                          text: emailText
                                      },
                                      function (error, info) {
@@ -570,6 +577,72 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
                           response.send(JSON.stringify(result));
                       }
                       });
+         });
+
+app.get("/games_append", function(request,response) {
+        var result = {
+            file: submissions
+        };
+        
+        response.send(JSON.stringify(result));
+        });
+
+app.post("/games_append_new", jsonPostParser, function(request,response) {
+         var result = {
+             message: ""
+         };
+         
+         var submission = request.body;
+         
+         //add new game to games
+         if (addGame(submission.game)) {
+             //update games.json
+             if (!fileGames) {
+                 result.message = "ERROR:write";
+                 response.send(JSON.stringify(result));
+             }
+             else {
+                 //remove old submission from submissions
+                 var foundSubmission = -1;
+                 for (var i=0; i<submissions.length && !foundSubmission; i++) {
+                     if (submissions[i].curator == submission.curator) {
+                         submissions.splice(i,1);
+                         
+                         foundSubmission = true;
+                     }
+                 }
+         
+                 if (foundSubmission && fileSubmissions) { //update submissions.json
+                     //send email to curator
+                     transporter.sendMail({
+                                              from: emailTemplate.from,
+                                              to: emailTemplate.from,
+                                              subject: emailTemplate.additionSubject,
+                                              text: submission.curator.substring(0,submission.curator.indexOf("@")) + ",\nThanks so much for your addition to the collection! " + submission.game.name + " was just approved for hubble and is now part of the website :)\n\nKeep them coming,\nhttp://hubble-ojpgapps@rhcloud.com"
+                                          },function (error, info) {
+                                              if (error) {
+                                                  result.message = "ERROR:email";
+                                                  response.send(JSON.stringify(result));
+                                              }
+                                              else {
+                                                  //send confirmation to admin
+                                                  result.message = "SUCCESS";
+                                                  response.send(JSON.stringify(result));
+                                              }
+                                          });
+                 }
+                 else {
+                     //failed to delete old submission
+                     result.message = "ERROR:erase";
+                     response.send(JSON.stringify(result));
+                 }
+             }
+         }
+         else {
+            //failed to add game
+            result.message = "ERROR:add";
+            response.send(JSON.stringify(result));
+         }
          });
 
 app.get("/games_replace", function(request,response) {
@@ -723,15 +796,71 @@ function deleteGameByRating(indexByName,rating) {
     return result;
 }
 
-//this appends a new game to games.byName lexicographically, ¿and then to games.byRating by rating+index?
-function addGameByName() {
+//this adds a new game to both games.byName lexicographically, and games.byRating by rating and index in games.byName
+function addGame(newGame) {
+    var indexByName = addGameByName(newGame);
     
+    if (indexByName > -1) {
+        addGameByRating(indexByName,newGame.rating);
+        
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
-//this appends a new game to games.byRating according to game.rating
+//this appends a new game to games.byName lexicographically
+function addGameByName(newGame) {
+    var location = alphabet.indexOf(newGame.name.charAt(0));
+
+    var left = null;
+    var right = null;
+    var done = false;
+
+    while (!done) {
+        if (location > 0) {
+            left = games.byName[location-1].name;
+        }
+        else {
+            left = newGame.name;
+        }
+        if (location < games.byName.length) {
+            right = games.byName[location].name;
+        }
+        else {
+            right = newGame.name;
+        }
+        
+        if (compareStrings(newGame.name,left) < 0) {
+            if (location > 0) {
+                location--;
+            }
+            else {
+                done = true;
+            }
+        }
+        else if (compareStrings(newGame.name,right) > 0) {
+            if (location < games.byName.length) {
+                location++;
+            }
+            else {
+                done = true;
+            }
+        }
+        else {
+            done = true;
+        }
+    }
+    
+    games.byName.splice(location,0,newGame);
+    
+    return location;
+}
+
+//this appends a new game to games.byRating according to game.rating and game.name
 function addGameByRating(indexByName,rating) {
     var location = Math.round(((5-rating)/4) * games.byRating.length);
-    var stop = false;
     
     var game = {
         tags: games.byName[indexByName].tags,
@@ -807,6 +936,7 @@ function fileAccounts() {
     return result;
 }
 
+//update submissions.json to match submissions
 function fileSubmissions() {
     var result = true;
     
@@ -879,4 +1009,38 @@ function encrypt(input,seed) {
     encrypted += salt;
     
     return encrypted;
+}
+
+//compare lexicographically two strings (-1 = first<second, 0 = first=second, 1 = first>second)
+function compareStrings(first,second) {
+    for (var i=0; i<first.length; i++) {
+        if (i >= second.length) {
+            return 1;
+        }
+        else {
+            var a = alphabet.indexOf(first.charAt[i]);
+            var b = alphabet.indexOf(second.charAt[i]);
+            
+            if (a == -1 && first.charAt[i] != " ") {
+                a = alphabet.length;
+            }
+            if (b == -1 && second.charAt[i] != " ") {
+                b = alphabet.length;
+            }
+            
+            if (a < b) {
+                return -1;
+            }
+            else if (a > b) {
+                return 1;
+            }
+        }
+    }
+    
+    if (first.length < second.length) {
+        return -1;
+    }
+    else {
+        return 0;
+    }
 }
