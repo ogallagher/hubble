@@ -443,7 +443,7 @@ app.get("/rate", function (request,response) {
 app.get("/curate", function (request,response) {
         var submission = {
             curator: request.query.curator,
-            game: request.query.game
+            game: request.query.game || null
         };
         
         var result = {
