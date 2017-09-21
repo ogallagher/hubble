@@ -46,8 +46,8 @@ var submissions = require("./submissions.json");
      7 Zball 5:         2
 */
 
-var port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
-var ip = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
+var port = process.env.HUBBLE_SERVICE_PORT || 8080;
+var ip = process.env.HOSTNAME || "127.0.0.1";
 
 var RESULT_MAX = 10; //the number of search results will not exceed RESULT_MAX
 var ADMIN_ADDRESS = "hubbleojpgapps@gmail.com";
