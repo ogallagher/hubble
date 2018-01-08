@@ -60,7 +60,10 @@ var emailTemplate = {
     additionSubject: "Submission Accepted for "
     
 };
-var serverDirectoryPath = process.env.OPENSHIFT_REPO_DIR + "/";
+var serverDirectoryPath = "/opt/app-root/src/"; //$pwd in openshift remote shell to hubble's server pod
+var dataDirectoryPath = "/opt/app-root/data/";  //path to data files that won't be overwritten when I update the server
+
+var shuffleUrl = "http://shuffle-shuffle.193b.starter-ca-central-1.openshiftapps.com/";
 
 app.use(express.static("public"));
 
@@ -672,6 +675,10 @@ app.post("/games_replace_new", jsonPostParser, function(request,response) {
                           response.send(JSON.stringify(result));
                       }
                       });
+        });
+
+app.get("/shuffle", function(request,response) { //use known domain hubblegames.site to make my other sites known: hubblegames.site/mygame
+            result.redirect(shuffleUrl);
         });
 
 var server = app.listen(port,ip);
