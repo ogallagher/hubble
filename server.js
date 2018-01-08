@@ -678,7 +678,7 @@ app.post("/games_replace_new", jsonPostParser, function(request,response) {
         });
 
 app.get("/shuffle", function(request,response) { //use known domain hubblegames.site to make my other sites known: hubblegames.site/mygame
-            result.redirect(shuffleUrl);
+            response.redirect(shuffleUrl);
         });
 
 var server = app.listen(port,ip);
