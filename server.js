@@ -21,12 +21,12 @@ var submissions = require("./submissions.json");
 var mysql = require("mysql");
 
 var dbInfo = {
-                service_port = 3306,
-                service_host = "172.30.158.250",
-                password = "hubbleconnect",
-                user = "hubble",
-                database = "hubbledb",
-                connected = false
+                service_port: 3306,
+                service_host: "172.30.158.250",
+                password: "hubbleconnect",
+                user: "hubble",
+                database: "hubbledb",
+                connected: false
               };
 
 var dbConnection = mysql.createConnection({
