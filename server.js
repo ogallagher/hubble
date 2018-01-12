@@ -18,34 +18,6 @@ var games = require("./games.json");
 var accounts = require("./accounts.json");
 var submissions = require("./submissions.json");
 
-var mysql = require("mysql");
-
-var dbInfo = {
-                service_port: 3306,
-                service_host: "172.30.158.250",
-                password: "hubbleconnect",
-                user: "hubble",
-                database: "hubbledb",
-                connected: false
-              };
-
-var dbConnection = mysql.createConnection({
-                                          host: dbInfo.service_host,
-                                          port: dbInfo.service_port,
-                                          user: dbInfo.user,
-                                          password: dbInfo.password,
-                                          database: dbInfo.database
-                                          });
-
-dbConnection.connect(function(error) {
-                     if (!error) {
-                         dbInfo.connected = true;
-                     }
-                     else {
-                         dbInfo.connected = error.stack;
-                     }
-                     });
-
 /*
  ORDER
  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  0  1  2  3  4  5  6  7  8  9
@@ -610,10 +582,9 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
                       });
          });
 
-app.get("/games_append", function(request,response) { //HERE: added status of database connection
+app.get("/games_append", function(request,response) {
         var result = {
-            file: submissions,
-            connected: dbInfo.connected
+            file: submissions
         };
         
         response.send(JSON.stringify(result));
