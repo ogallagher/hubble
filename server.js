@@ -14,9 +14,9 @@ var transporter = nodemailer.createTransport({
 
 var fs = require("fs");
 
-var games = require("./games.json");
-var accounts = require("./accounts.json");
-var submissions = require("./submissions.json");
+var games = require("/data/games.json");
+var accounts = require("/data/accounts.json");
+var submissions = require("/data/submissions.json");
 
 /*
  ORDER
@@ -61,7 +61,7 @@ var emailTemplate = {
     
 };
 var serverDirectoryPath = "/opt/app-root/src/"; //$pwd in openshift remote shell to hubble's server pod
-var dataDirectoryPath = "/opt/app-root/data/";  //path to data files that won't be overwritten when I update the server
+var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten when I update the server
 
 var shuffleUrl = "http://shuffle-shuffle.193b.starter-ca-central-1.openshiftapps.com/";
 
@@ -87,7 +87,7 @@ app.get("/search", function(request,response) {
                     function nextGameByTag(tagCounter) {
                         if (tagCounter < gamesByTag.length) {
                             if (resultTags.indexOf(gamesByTag[tagCounter]) == -1) {
-                                fs.readFile("./game_icons/" + gamesByTag[tagCounter].name + ".png", function(err, data) {
+                                fs.readFile(dataDirectoryPath + "game_icons/" + gamesByTag[tagCounter].name + ".png", function(err, data) {
                                     var iconData = "";
                                             
                                     if (err) {
@@ -126,7 +126,7 @@ app.get("/search", function(request,response) {
                     function nextGameByName(nameCounter) {
                         if (nameCounter < gamesByName.length) {
                             if (resultNames.indexOf(gamesByName[nameCounter]) == -1) {
-                                fs.readFile("./game_icons/" + gamesByName[nameCounter].name + ".png", function(err, data) {
+                                fs.readFile(dataDirectoryPath + "game_icons/" + gamesByName[nameCounter].name + ".png", function(err, data) {
                                     var iconData = "";
                                             
                                     if (err) {
@@ -191,7 +191,7 @@ app.get("/featured", function(request,response) {
         function nextResult(counter) {
             if (counter < games.byName.length && result.games.length < RESULT_MAX) {
                 if (games.byName[counter].featured) {
-                    fs.readFile("./game_icons/" + games.byName[counter].name + ".png", function(err, data) {
+                    fs.readFile(dataDirectoryPath + "game_icons/" + games.byName[counter].name + ".png", function(err, data) {
                                 var iconData = "";
                                 
                                 if (err) {
@@ -566,7 +566,7 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
              message: ""
          };
          
-         fs.writeFile(serverDirectoryPath + "accounts.json", request.body.file, "utf8", function(err) {
+         fs.writeFile(dataDirectoryPath + "accounts.json", request.body.file, "utf8", function(err) {
                       if (err) {
                           result.message = "ERROR:write";
                       
@@ -661,7 +661,7 @@ app.post("/games_replace_new", jsonPostParser, function(request,response) {
              message: ""
          };
          
-         fs.writeFile(serverDirectoryPath + "games.json", request.body.file, "utf8", function(err) {
+         fs.writeFile(dataDirectoryPath + "games.json", request.body.file, "utf8", function(err) {
                       if (err) {
                           result.message = "ERROR:write";
                           
@@ -921,7 +921,7 @@ function addGameByRating(indexByName,rating) {
 function fileGames() {
     var result = true;
     
-    fs.writeFile(serverDirectoryPath + "games.json", JSON.stringify(games), function(err) {
+    fs.writeFile(dataDirectoryPath + "games.json", JSON.stringify(games), function(err) {
                  if (err) {
                      result = false;
                  }
@@ -934,7 +934,7 @@ function fileGames() {
 function fileAccounts() {
     var result = true;
     
-    fs.writeFile(serverDirectoryPath + "accounts.json", JSON.stringify(accounts), function(err) {
+    fs.writeFile(dataDirectoryPath + "accounts.json", JSON.stringify(accounts), function(err) {
                  if (err) {
                      result = false;
                  }
@@ -947,7 +947,7 @@ function fileAccounts() {
 function fileSubmissions() {
     var result = true;
     
-    fs.writeFile(serverDirectoryPath + "submissions.json", JSON.stringify(submissions), function(err) {
+    fs.writeFile(dataDirectoryPath + "submissions.json", JSON.stringify(submissions), function(err) {
                  if (err) {
                      result = false;
                  }

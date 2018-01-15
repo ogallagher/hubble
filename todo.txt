@@ -6,23 +6,26 @@
 · x create /hubble_data directory on google drive with hubble account (hubble_google_drive)
 · x add googleapis js module to the server
 · x use googleapis to retrieve .json files from hubble_google_drive/hubble_data
-· · add an sql database to hubble
-· · √ create and configure the database
-· · · link database to hubble (grab pertinent credentials)
-· · · · add mysql module to server
-· · · · username: hubblegames
-· · · · password: hubbleconnect
-· · · · db name: hubbledb
-· · · create dbinit.sql file
-· · · · add tables to database
-· · · · · accounts
-· · · · · games
-· · · · · submissions
-· · · · fill tables
-· · replace require() and fs.(read()/write()) functions with mysql code
-· · · select
-· · · insert
-· · · delete
+· x add an sql database to hubble
+· x √ create and configure the database
+· x x link database to hubble (grab pertinent credentials)
+· x x x add mysql module to server
+· x x x username: hubblegames
+· x x x password: hubbleconnect
+· x x x db name: hubbledb
+· x x create dbinit.sql file
+· x x x add tables to database
+· x x x x accounts
+· x x x x games
+· x x x x submissions
+· x x x fill tables
+· x replace require() and fs.(read()/write()) functions with mysql code
+· x x select
+· x x insert
+· x x delete
+· ? add persistent storage volume hubblestorage in the /data directory
+· ? √ move the .json and game_icons files there
+· ? ? change path in server.js
 > $npm ls showed many extraneous modules included in hubble that I can probably remove
 > an old search result repetition bug seems to have returned
 √ bought the domain name hubblegames.site from iwantmyname.com for $10
