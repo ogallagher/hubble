@@ -26,12 +26,12 @@
 · ? add persistent storage volume hubblestorage in the /data directory
 · ? √ move the .json and game_icons files there
 · ? ? change path in server.js
-> $npm ls showed many extraneous modules included in hubble that I can probably remove
-> an old search result repetition bug seems to have returned
+√ $npm ls showed many extraneous modules included in hubble that I can probably remove
+√ an old search result repetition bug seems to have returned
 √ bought the domain name hubblegames.site from iwantmyname.com for $10
-> update url for shuffle
-> √ in server add /shuffle get handler
-> > in hubble’s games.json
-> > add hubblegames.site/shuffle domain to iwantmyname.com’s index
+√ update url for shuffle
+√ √ in server add /shuffle get handler
+√ √ in hubble’s games.json
+√ √ add hubblegames.site/shuffle domain to iwantmyname.com’s index
 > update (server.js).(/search) handler so nextGameBy_() functions are not defined in local scopes (should make it faster)
 > edit curation and administration according to addition of author.links

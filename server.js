@@ -14,6 +14,7 @@ var transporter = nodemailer.createTransport({
 
 var fs = require("fs");
 
+
 var games = require("/data/games.json");
 var accounts = require("/data/accounts.json");
 var submissions = require("/data/submissions.json");
@@ -61,126 +62,160 @@ var emailTemplate = {
     
 };
 var serverDirectoryPath = "/opt/app-root/src/"; //$pwd in openshift remote shell to hubble's server pod
+
 var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten when I update the server
 
 var shuffleUrl = "http://shuffle-shuffle.193b.starter-ca-central-1.openshiftapps.com/";
 
 app.use(express.static("public"));
 
+
+//SEARCH HANDLER
+var searchTerms = null;
+var resultNames = [];
+var resultTags = [];
+var result = {
+    message: "",
+    name: null,
+    tags: null
+};
+
+var gamesByName = null;
+var gamesByTag = null;
+
+function nextGameByTag(counter,tagCounter) {
+    if (tagCounter < gamesByTag.length) {
+        var found = false;
+        
+        for (var i=0; i<resultTags.length && !found; i++) {
+            if (resultTags[i].name == gamesByTag[tagCounter].name) {
+                found = true;
+            }
+        }
+        
+        if (!found) {
+            
+            fs.readFile(dataDirectoryPath + "game_icons/" + gamesByTag[tagCounter].name + ".png", function(err, data) {
+                        var iconData = "";
+                        
+                        if (err) {
+                            result.message = "ERROR:read";
+                        }
+                        else {
+                            iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                        }
+                        
+                        var game = {
+                            name: gamesByTag[tagCounter].name,
+                            authors: gamesByTag[tagCounter].authors,
+                            description: gamesByTag[tagCounter].description,
+                            tags: gamesByTag[tagCounter].tags,
+                            rating: gamesByTag[tagCounter].rating,
+                            reviews: gamesByTag[tagCounter].reviews,
+                            featured: gamesByTag[tagCounter].featured,
+                            url: gamesByTag[tagCounter].url,
+                            icon: iconData
+                        }
+                        
+                        resultTags.push(game);
+                        
+                        nextGameByTag(counter,tagCounter+1);
+                        });
+        }
+        else {
+            nextGameByTag(counter,tagCounter+1);
+        }
+    }
+    else {
+        nextResults(counter+1);
+    }
+}
+
+function nextGameByName(counter,nameCounter) {
+    if (nameCounter < gamesByName.length) {
+        var found = false;
+        
+        for (var i=0; i<resultNames.length && !found; i++) {
+            if (resultNames[i].name == gamesByName[nameCounter].name) {
+                found = true;
+            }
+        }
+        
+        if (!found) {
+            fs.readFile(dataDirectoryPath + "game_icons/" + gamesByName[nameCounter].name + ".png", function(err, data) {
+                        var iconData = "";
+                        
+                        if (err) {
+                            result.message = "ERROR:read";
+                        }
+                        else {
+                            iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                        }
+                        
+                        var game = {
+                            name: gamesByName[nameCounter].name,
+                            authors: gamesByName[nameCounter].authors,
+                            description: gamesByName[nameCounter].description,
+                            tags: gamesByName[nameCounter].tags,
+                            rating: gamesByName[nameCounter].rating,
+                            reviews: gamesByName[nameCounter].reviews,
+                            featured: gamesByName[nameCounter].featured,
+                            url: gamesByName[nameCounter].url,
+                            icon: iconData
+                        }
+                        
+                        resultNames.push(game);
+                        
+                        nextGameByName(counter,nameCounter+1);
+                        });
+        }
+        else {
+            nextGameByName(counter,nameCounter+1);
+        }
+    }
+    else {
+        nextGameByTag(counter,0);
+    }
+}
+
+function nextResults(counter) {
+    if (counter<searchTerms.length && (resultNames.length<RESULT_MAX || resultTags.length<RESULT_MAX)) {
+        if (searchTerms[counter].length > 0) {
+            gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,true);  //name search
+            gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
+            
+            nextGameByName(counter,0);
+        }
+        else {
+            nextResults(counter+1);
+        }
+    }
+    else {
+        if (result.message.length == 0) {
+            result.name = resultNames;
+            result.tags = resultTags;
+        }
+        
+        response.send(JSON.stringify(result));
+    }
+}
+
 app.get("/search", function(request,response) {
         //search games.json by name and tags
-        var searchTerms = request.query.terms;
-        var resultNames = [];
-        var resultTags = [];
-        var result = {
+        searchTerms = request.query.terms;
+        resultNames = [];
+        resultTags = [];
+        result = {
             message: "",
             name: null,
             tags: null
         };
         
-        function nextResults(counter) {
-            if (counter<searchTerms.length && (resultNames.length<RESULT_MAX || resultTags.length<RESULT_MAX)) {
-                if (searchTerms[counter].length > 0) {
-                    var gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,true);  //name search
-                    var gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
-        
-                    function nextGameByTag(tagCounter) {
-                        if (tagCounter < gamesByTag.length) {
-                            if (resultTags.indexOf(gamesByTag[tagCounter]) == -1) {
-                                fs.readFile(dataDirectoryPath + "game_icons/" + gamesByTag[tagCounter].name + ".png", function(err, data) {
-                                    var iconData = "";
-                                            
-                                    if (err) {
-                                        result.message = "ERROR:read";
-                                    }
-                                    else {
-                                        iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
-                                    }
-                                        
-                                    var game = {
-                                        name: gamesByTag[tagCounter].name,
-                                        authors: gamesByTag[tagCounter].authors,
-                                        description: gamesByTag[tagCounter].description,
-                                        tags: gamesByTag[tagCounter].tags,
-                                        rating: gamesByTag[tagCounter].rating,
-                                        reviews: gamesByTag[tagCounter].reviews,
-                                        featured: gamesByTag[tagCounter].featured,
-                                        url: gamesByTag[tagCounter].url,
-                                        icon: iconData
-                                    }
-                                    
-                                    resultTags.push(game);
-                                    
-                                    nextGameByTag(tagCounter+1);
-                                });
-                            }
-                            else {
-                                nextGameByTag(tagCounter+1);
-                            }
-                        }
-                        else {
-                            nextResults(counter+1);
-                        }
-                    }
-        
-                    function nextGameByName(nameCounter) {
-                        if (nameCounter < gamesByName.length) {
-                            if (resultNames.indexOf(gamesByName[nameCounter]) == -1) {
-                                fs.readFile(dataDirectoryPath + "game_icons/" + gamesByName[nameCounter].name + ".png", function(err, data) {
-                                    var iconData = "";
-                                            
-                                    if (err) {
-                                        result.message = "ERROR:read";
-                                    }
-                                    else {
-                                        iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
-                                    }
-                                    
-                                    var game = {
-                                        name: gamesByName[nameCounter].name,
-                                        authors: gamesByName[nameCounter].authors,
-                                        description: gamesByName[nameCounter].description,
-                                        tags: gamesByName[nameCounter].tags,
-                                        rating: gamesByName[nameCounter].rating,
-                                        reviews: gamesByName[nameCounter].reviews,
-                                        featured: gamesByName[nameCounter].featured,
-                                        url: gamesByName[nameCounter].url,
-                                        icon: iconData
-                                    }
-                                    
-                                    resultNames.push(game);
-                                    
-                                    nextGameByName(nameCounter+1);
-                                });
-                            }
-                            else {
-                                nextGameByName(nameCounter+1);
-                            }
-                        }
-                        else {
-                            nextGameByTag(0);
-                        }
-                    }
-        
-                    nextGameByName(0);
-                }
-                else {
-                    nextResults(counter+1);
-                }
-            }
-            else {
-                if (result.message.length == 0) {
-                    result.name = resultNames;
-                    result.tags = resultTags;
-                }
-        
-                response.send(JSON.stringify(result));
-            }
-        }
-        
         nextResults(0);
         });
 
+
+//FEATURED HANDLER
 app.get("/featured", function(request,response) {
         //search games by game.featured
         var result = {
@@ -231,6 +266,7 @@ app.get("/featured", function(request,response) {
         nextResult(0);
         });
 
+//REGISTER HANDLER
 app.get("/register", function(request,response) {
         //check if user already exists, check if email is valid, and return the appropriate messages
         var now = new Date();
@@ -296,6 +332,7 @@ app.get("/register", function(request,response) {
         }
         });
 
+//LOGIN HANDLER
 app.get("/login", function (request,response) {
         //check that user is in accounts.json, check that accounts[i].password == proposedAccount.password, and return the appropriate messages
         var proposedAccount = request.query.account;
@@ -339,6 +376,7 @@ app.get("/login", function (request,response) {
         }
         });
 
+//RATE HANDLER
 app.get("/rate", function (request,response) {
         //handle clients' requests to rate games
         var account = request.query.account;
@@ -443,6 +481,7 @@ app.get("/rate", function (request,response) {
         response.send(JSON.stringify(result));
         });
 
+//CURATE HANDLER
 app.get("/curate", function (request,response) {
         var submission = {
             curator: request.query.curator,
@@ -553,6 +592,7 @@ app.get("/curate", function (request,response) {
         }
         });
 
+//ACCOUNTS HANDLER
 app.get("/accounts", function(request,response) {
         var result = {
             file: accounts
@@ -561,6 +601,7 @@ app.get("/accounts", function(request,response) {
         response.send(JSON.stringify(result));
         });
 
+//ACCOUNTS_NEW HANDLER
 app.post("/accounts_new", jsonPostParser, function(request,response) {
          var result = {
              message: ""
@@ -582,6 +623,7 @@ app.post("/accounts_new", jsonPostParser, function(request,response) {
                       });
          });
 
+//GAMES_APPEND HANDLER
 app.get("/games_append", function(request,response) {
         var result = {
             file: submissions
@@ -590,6 +632,7 @@ app.get("/games_append", function(request,response) {
         response.send(JSON.stringify(result));
         });
 
+//GAMES_APPEND_NEW HANDLER
 app.post("/games_append_new", jsonPostParser, function(request,response) {
          var result = {
              message: ""
@@ -648,6 +691,7 @@ app.post("/games_append_new", jsonPostParser, function(request,response) {
          }
          });
 
+//GAMES_REPLACE HANDLER
 app.get("/games_replace", function(request,response) {
         var result = {
             file: games
@@ -656,6 +700,7 @@ app.get("/games_replace", function(request,response) {
         response.send(JSON.stringify(result));
         });
 
+//GAMES_REPLACE_NEW HANDLER
 app.post("/games_replace_new", jsonPostParser, function(request,response) {
          var result = {
              message: ""
@@ -677,7 +722,8 @@ app.post("/games_replace_new", jsonPostParser, function(request,response) {
                       });
         });
 
-app.get("/shuffle", function(request,response) { //use known domain hubblegames.site to make my other sites known: hubblegames.site/mygame
+//use known domain hubblegames.site to make my other sites known: hubblegames.site/mygame
+app.get("/shuffle", function(request,response) {
             response.redirect(shuffleUrl);
         });
 

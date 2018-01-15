@@ -1,6 +1,6 @@
 {
   "name": "hubble",
-  "version": "8.15.2017",
+  "version": "1.15.2018",
   "description": "The website is an interactive JavaScript program with links to games.",
   "main": "server.js",
   "dependencies": {
@@ -16,7 +16,12 @@
     "type": "git",
     "url": "ssh://5820a85a7628e1c6f5000142@hubble-ojpgapps.rhcloud.com/~/git/hubble.git/"
   },
-  "keywords": ["hubble","game","mobile","hosting"],
+  "keywords": [
+    "hubble",
+    "game",
+    "mobile",
+    "hosting"
+  ],
   "author": "Owen Gallagher",
   "license": "ISC"
 }
