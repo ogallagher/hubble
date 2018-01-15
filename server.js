@@ -83,6 +83,8 @@ var result = {
 var gamesByName = null;
 var gamesByTag = null;
 
+var responseObject = null;
+
 function nextGameByTag(counter,tagCounter) {
     if (tagCounter < gamesByTag.length) {
         var found = false;
@@ -191,15 +193,12 @@ function nextResults(counter) {
         }
     }
     else {
-        if (result.message.length == 0) {
-            result.name = resultNames;
-            result.tags = resultTags;
-        }
+        result.name = resultNames;
+        result.tags = resultTags;
         
-        response.send(JSON.stringify(result));
+        responseObject.send(JSON.stringify(result));
     }
 }
-
 app.get("/search", function(request,response) {
         //search games.json by name and tags
         searchTerms = request.query.terms;
@@ -207,9 +206,11 @@ app.get("/search", function(request,response) {
         resultTags = [];
         result = {
             message: "",
-            name: null,
-            tags: null
+            name: [],
+            tags: []
         };
+        
+        responseObject = response;
         
         nextResults(0);
         });

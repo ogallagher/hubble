@@ -24,7 +24,7 @@
 · x x insert
 · x x delete
 · ? add persistent storage volume hubblestorage in the /data directory
-· ? √ move the .json and game_icons files there
+· ? ? move the .json and game_icons files there
 · ? ? change path in server.js
 √ $npm ls showed many extraneous modules included in hubble that I can probably remove
 √ an old search result repetition bug seems to have returned
