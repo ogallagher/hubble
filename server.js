@@ -14,17 +14,12 @@ var transporter = nodemailer.createTransport({
 
 var fs = require("fs");
 
-
 var games = require("/data/games.json");
 var accounts = require("/data/accounts.json");
 var submissions = require("/data/submissions.json");
 
 
 /*
- ORDER
- A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  0  1  2  3  4  5  6  7  8  9
- 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
- 
  games.byName lists the games according to game.name
  
      Doodle Jump:   04
@@ -63,6 +58,7 @@ var emailTemplate = {
     
 };
 var serverDirectoryPath = "/opt/app-root/src/"; //$pwd in openshift remote shell to hubble's server pod
+
 
 var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten when I update the server
 
@@ -265,6 +261,47 @@ app.get("/featured", function(request,response) {
         }
         
         nextResult(0);
+        });
+
+//RANDOM HANDLER
+app.get("/random", function(request,response) {
+        var result = {
+            message: "",
+            games: []
+        }
+        
+        function nextRandom(previous) {
+            if (previous.length < RESULT_MAX*0.5) {
+                var index = -1;
+        
+                while (previous.indexOf(index) > -1) {
+                    index = Math.round(Math.random() * (games.byName.length-1));
+                }
+
+                var newGame = games.byName[index];
+                
+                fs.readFile(dataDirectoryPath + "game_icons/" + newGame.name + ".png", function(err, data) {
+                            newGame.icon = "";
+                            
+                            if (err) {
+                                result.message = "ERROR:read";
+                            }
+                            else {
+                                newGame.icon = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                            }
+                            
+                            result.games.push(newGame);
+                            previous.push(index);
+                            
+                            nextRandom(previous);
+                            });
+            }
+            else {
+                response.send(JSON.stringify(result));
+            }
+        }
+        
+        nextRandom([-1]);
         });
 
 //REGISTER HANDLER
@@ -876,6 +913,9 @@ function deleteGameByRating(indexByName,rating) {
 
 //this adds a new game to both games.byName lexicographically, and games.byRating by rating and index in games.byName
 function addGame(newGame) {
+    newGame.reviews = 1;
+    newGame.featured = false;
+    
     var indexByName = addGameByName(newGame);
 
     if (indexByName > -1) {
@@ -984,6 +1024,12 @@ function addGameByRating(indexByName,rating) {
             left = games.byName[indexByName];
         }
         right = games.byName[games.byRating[location].index];
+    }
+    
+    for (var i=0; i<games.byRating.length; i++) {       //update indeces after new game is inserted into games.byName
+        if (games.byRating[i].index >= indexByName) {
+            games.byRating[i].index++;
+        }
     }
     
     games.byRating.splice(location,0,game); //splice(location,#_delete,[insert_1,insert_2,...])
