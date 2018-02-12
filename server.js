@@ -14,9 +14,11 @@ var transporter = nodemailer.createTransport({
 
 var fs = require("fs");
 
-var games = require("/data/games.json");
-var accounts = require("/data/accounts.json");
-var submissions = require("/data/submissions.json");
+var dataDirectoryPath = "./";//"/data/";  //path to data files that won't be overwritten
+
+var games = require(dataDirectoryPath + "games.json");
+var accounts = require(dataDirectoryPath + "accounts.json");
+var submissions = require(dataDirectoryPath + "submissions.json");
 
 
 /*
@@ -55,34 +57,50 @@ var emailTemplate = {
     curatorSubject: "New Curator: ",
     submissionSubject: "New Game: * from ",
     additionSubject: "Submission Accepted for "
-    
 };
+var registerEmail = null;
+
 var serverDirectoryPath = "/opt/app-root/src/"; //$pwd in openshift remote shell to hubble's server pod
-
-
-var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten when I update the server
 
 var shuffleUrl = "http://shuffle-shuffle.193b.starter-ca-central-1.openshiftapps.com/";
 
 app.use(express.static("public"));
+
+//RENDER EMAIL TEMPLATES INFORMATION
+fs.readFile(dataDirectoryPath + "email_resources/registration.html", "utf-8", function(err, data) {
+            if (err) {
+                console.log("Couldn't read registration.html email content!");
+            }
+            else {
+                registerEmail = data;
+            
+                fs.readFile(dataDirectoryPath + "email_resources/network1.png", "base64", function(err,data) {
+                            if (err) {
+                                console.log("Couldn't read logo image!");
+                                registerEmail = registerEmail.replace(/(<img.*>)/,"http://hubblegames.site/");
+                            }
+                            else {
+                                registerEmail = registerEmail.replace("((logo))","data:image/png;base64," + data);
+                            }
+                            });
+            }
+            }); //HERE
 
 
 //SEARCH HANDLER
 var searchTerms = null;
 var resultNames = [];
 var resultTags = [];
-var result = {
-    message: "",
-    name: null,
-    tags: null
-};
+var resultAccounts = [];
+var result = null;
 
 var gamesByName = null;
 var gamesByTag = null;
+var accountsByAddress = null;
 
 var responseObject = null;
 
-function nextGameByTag(counter,tagCounter) {
+function nextGameByTag(counter,tagCounter,isSearch) {
     if (tagCounter < gamesByTag.length) {
         var found = false;
         
@@ -115,21 +133,22 @@ function nextGameByTag(counter,tagCounter) {
                             icon: iconData
                         }
                         
+                        console.log("\t\t" + game.name);
                         resultTags.push(game);
                         
-                        nextGameByTag(counter,tagCounter+1);
+                        nextGameByTag(counter,tagCounter+1,isSearch);
                         });
         }
         else {
-            nextGameByTag(counter,tagCounter+1);
+            nextGameByTag(counter,tagCounter+1,isSearch);
         }
     }
     else {
-        nextResults(counter+1);
+        nextResults(counter+1,isSearch);
     }
 }
 
-function nextGameByName(counter,nameCounter) {
+function nextGameByName(counter,nameCounter,isSearch,proceedToTags) {
     if (nameCounter < gamesByName.length) {
         var found = false;
         
@@ -140,14 +159,14 @@ function nextGameByName(counter,nameCounter) {
         }
         
         if (!found) {
-            fs.readFile(dataDirectoryPath + "game_icons/" + gamesByName[nameCounter].name + ".png", function(err, data) {
+            fs.readFile(dataDirectoryPath + "game_icons/" + gamesByName[nameCounter].name + ".png", "base64", function(err, data) {
                         var iconData = "";
                         
                         if (err) {
                             result.message = "ERROR:read";
                         }
                         else {
-                            iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                            iconData = "data:image/png;base64," + data;
                         }
                         
                         var game = {
@@ -162,35 +181,108 @@ function nextGameByName(counter,nameCounter) {
                             icon: iconData
                         }
                         
+                        console.log("\t\t" + game.name);
                         resultNames.push(game);
                         
-                        nextGameByName(counter,nameCounter+1);
+                        nextGameByName(counter,nameCounter+1,isSearch,proceedToTags);
                         });
         }
         else {
-            nextGameByName(counter,nameCounter+1);
+            nextGameByName(counter,nameCounter+1,isSearch,proceedToTags);
         }
     }
+    else if (proceedToTags) {
+        gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
+        nextGameByTag(counter,0,isSearch);
+    }
     else {
-        nextGameByTag(counter,0);
+        nextResults(counter+1,isSearch);
     }
 }
 
-function nextResults(counter) {
-    if (counter<searchTerms.length && (resultNames.length<RESULT_MAX || resultTags.length<RESULT_MAX)) {
-        if (searchTerms[counter].length > 0) {
-            gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,true);  //name search
-            gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
+function nextAccountByAddress(counter,accountCounter,isSearch) {
+    console.log("\tnextAccountByAddress(): counter=" + counter + " a=" + accountCounter + " isSearch=" + isSearch);
+    if (accountCounter < accountsByAddress.length) {
+        var found = false;
+        
+        for (var i=0; i<resultAccounts.length && !found; i++) {
+            if (resultAccounts[i].address == accountsByAddress[accountCounter].address) {
+                found = true;
+            }
+        }
+        
+        if (!found) {
+            console.log("\tpush(" + accountsByAddress[accountCounter] + ")");
+            resultAccounts.push(accountsByAddress[accountCounter]);
             
-            nextGameByName(counter,0);
+            nextAccountByAddress(counter,accountCounter+1,isSearch);
         }
         else {
-            nextResults(counter+1);
+            console.log("\t" + accountsByAddress[accountCounter] + " already in resultAccounts");
+            nextAccountByAddress(counter,accountCounter+1,isSearch);
         }
     }
     else {
-        result.name = resultNames;
-        result.tags = resultTags;
+        nextResults(counter+1,isSearch);
+    }
+}
+
+function nextResults(counter,isSearch) {
+    var moreTerms = false; //there are more search terms AND there is space in the results array(s)
+    
+    var moreSpace = [false,false,false]; //[names,tags,accounts]
+    if (isSearch) {
+        moreSpace[0] = (resultNames.length < RESULT_MAX);
+        moreSpace[1] = (resultTags.length < RESULT_MAX);
+        
+        moreTerms = (counter < searchTerms.length);
+    }
+    else {
+        moreSpace[2] = (resultAccounts < RESULT_MAX);
+        
+        moreTerms = (counter < searchTerms.length);
+    }
+    
+    console.log("nextResults(): counter=" + counter + " isSearch=" + isSearch);
+    
+    if (moreTerms) {
+        if (searchTerms[counter].length > 0) {
+            console.log("\tloading results for " + searchTerms[counter]);
+            
+            if (moreSpace[0]) {
+                gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,true);  //name search
+                nextGameByName(counter,0,isSearch,moreSpace[1]); //search games.byName (also calls nextGameByName if moreSpace[1]
+            }
+            else if (moreSpace[1]) {
+                gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
+                nextGameByTag(counter,0,isSearch); //search games.byRating
+            }
+            
+            if (moreSpace[2]) {
+                console.log("\t" + searchTerms[counter] + " is an account address...");
+                accountsByAddress = searchAccounts(searchTerms[counter],RESULT_MAX-resultAccounts.length,true); //address search
+                
+                nextAccountByAddress(counter,0,isSearch); //search accounts
+            }
+        }
+        else {
+            nextResults(counter+1,isSearch);
+        }
+    }
+    else {
+        console.log("search complete.");
+        
+        if (isSearch) {
+            console.log("resultNames: " + resultNames.length);
+            console.log("resultTags: " + resultTags.length);
+            
+            result.name = resultNames;
+            result.tags = resultTags;
+        }
+        else {
+            console.log("resultAccounts: " + resultAccounts.length);
+            result.address = resultAccounts;
+        }
         
         responseObject.send(JSON.stringify(result));
     }
@@ -208,7 +300,24 @@ app.get("/search", function(request,response) {
         
         responseObject = response;
         
-        nextResults(0);
+        console.log("/search request received");
+        
+        nextResults(0,true); //counter,isSearch
+        });
+
+//ACCOUNTS HANDLER (SEARCH ACCOUNTS)
+app.get("/accounts", function(request,response) {
+        //search accounts.json by address
+        searchTerms = request.query.terms;
+        resultAccounts = [];
+        result = {
+            message: "",
+            address: []
+        };
+        
+        responseObject = response;
+        
+        nextResults(0,false);
         });
 
 
@@ -223,14 +332,14 @@ app.get("/featured", function(request,response) {
         function nextResult(counter) {
             if (counter < games.byName.length && result.games.length < RESULT_MAX) {
                 if (games.byName[counter].featured) {
-                    fs.readFile(dataDirectoryPath + "game_icons/" + games.byName[counter].name + ".png", function(err, data) {
+                    fs.readFile(dataDirectoryPath + "game_icons/" + games.byName[counter].name + ".png", "base64", function(err, data) {
                                 var iconData = "";
                                 
                                 if (err) {
                                     result.message = "ERROR:read";
                                 }
                                 else {
-                                    iconData = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                                    iconData = "data:image/png;base64," + data;
                                 }
                                     
                                 var game = {
@@ -280,14 +389,14 @@ app.get("/random", function(request,response) {
 
                 var newGame = games.byName[index];
                 
-                fs.readFile(dataDirectoryPath + "game_icons/" + newGame.name + ".png", function(err, data) {
+                fs.readFile(dataDirectoryPath + "game_icons/" + newGame.name + ".png", "base64", function(err, data) {
                             newGame.icon = "";
                             
                             if (err) {
                                 result.message = "ERROR:read";
                             }
                             else {
-                                newGame.icon = "data:image/png;base64," + (new Buffer(data)).toString("base64");
+                                newGame.icon = "data:image/png;base64," + data;
                             }
                             
                             result.games.push(newGame);
@@ -335,11 +444,20 @@ app.get("/register", function(request,response) {
         
         //check if email is valid
         if (!foundAddress) {
+            var htmlEmail = registerEmail;
+        
+            if (htmlEmail) {
+                htmlEmail = htmlEmail.replace(/\(\(username\)\)/g,newAccount.address.substring(0,newAccount.address.indexOf("@")))
+                                .replace(/\(\(address\)\)/g,newAccount.address)
+                                .replace(/\(\(password\)\)/g,newAccount.password);
+            }
+        
             transporter.sendMail({
                                      from: emailTemplate.from,
                                      to: newAccount.address,
                                      subject: emailTemplate.registerSubject,
-                                     text: "Hi " + newAccount.address + ",\n\nWelcome to hubble! Since you've created an account, you will now be able to rate games and suggest the addition of new ones.\n\nSo you don't forget, here is your account information:\n\tUsername: " + newAccount.address + "\n\tPassword: " + newAccount.password + "\n\nThanks for your help!\nhttp://hubblegames.site/"
+                                     text: "Hi " + newAccount.address.substring(0,newAccount.address.indexOf("@")) + ",\n\nWelcome to hubble! Since you've created an account, you will now be able to rate games and suggest the addition of new ones.\n\nSo you don't forget, here is your account information:\n\tAccount: " + newAccount.address + "\n\tPassword: " + newAccount.password + "\n\nThanks for your help!\nhttp://hubblegames.site/\n\nPS: If you didn't mean to create an account with hubble, click here to delete your account and unsubscribe from future emails: http://hubblegames.site/accounts_remove?oldAccount=" + newAccount.address,
+                                     html: htmlEmail
                                  },
                                  function (error, info) {
                                      if (error) {
@@ -621,36 +739,65 @@ app.get("/curate", function (request,response) {
         }
         });
 
-//ACCOUNTS HANDLER
-app.get("/accounts", function(request,response) {
-        var result = {
-            file: accounts
-        }
-                    
-        response.send(JSON.stringify(result));
-        });
-
-//ACCOUNTS_NEW HANDLER
-app.post("/accounts_new", jsonPostParser, function(request,response) {
+//ACCOUNTS_REPLACE HANDLER
+app.post("/accounts_replace", jsonPostParser, function(request,response) {
          var result = {
              message: ""
          };
          
-         fs.writeFile(dataDirectoryPath + "accounts.json", request.body.file, "utf8", function(err) {
-                      if (err) {
-                          result.message = "ERROR:write";
-                      
-                          response.send(JSON.stringify(result));
-                      }
-                      else {
-                          result.message = "SUCCESS";
-                      
-                          accounts = JSON.parse(request.body.file);
-                      
-                          response.send(JSON.stringify(result));
-                      }
-                      });
+         var newAccountAddress = request.body.newAccount.address;
+         var index = searchAccounts(newAccountAddress,1,false);
+         
+         console.log("Updating account: " + newAccountAddress);
+         
+         if (index != -1) {
+             accounts.splice(index,1,request.body.newAccount);
+         
+             function proceed() {
+                 result.message = "SUCCESS";
+                 response.send(JSON.stringify(result));
+             }
+             function fail() {
+                 result.message = "ERROR:write";
+                 response.send(JSON.stringify(result));
+             }
+             fileAccounts(proceed,fail);
+         }
+         else {
+             result.message = "ERROR:gone";
+             response.send(JSON.stringify(result));
+         }
          });
+
+app.get("/accounts_remove", function(request,response) {
+        var result = {
+            message: ""
+        };
+        
+        var oldAccountAddress = request.query.oldAccount;
+        var index = searchAccounts(oldAccountAddress,1,false);
+        
+        console.log("Deleting account: " + JSON.stringify(request.query));
+        
+        if (index != -1) {
+            accounts.splice(index,1);
+        
+            function proceed() {
+                result.message = "SUCCESS";
+                response.send(JSON.stringify(result));
+            }
+            function fail() {
+                result.message = "ERROR:write";
+                response.send(JSON.stringify(result));
+            }
+        
+            fileAccounts(proceed,fail);
+        }
+        else {
+            result.message = "ERROR:gone";
+            response.send(JSON.stringify(result));
+        }
+        });
 
 //GAMES_APPEND HANDLER
 app.get("/games_append", function(request,response) {
@@ -703,7 +850,7 @@ app.post("/games_append_new", jsonPostParser, function(request,response) {
                                                       transporter.sendMail({
                                                                            from: emailTemplate.from,
                                                                            to: submission.curator,
-                                                                           subject: emailTemplate.additionSubject,
+                                                                           subject: emailTemplate.additionSubject + submission.name,
                                                                            text: submission.curator.substring(0,submission.curator.indexOf("@")) + ",\nThanks so much for your addition to the collection! " + submission.game.name + " was just approved for hubble and is now part of the website :)\n\nKeep them coming,\nhttp://hubblegames.site"
                                                                            },function (error, info) {
                                                                                if (error) {
@@ -754,35 +901,75 @@ app.post("/games_append_new", jsonPostParser, function(request,response) {
          });
 
 //GAMES_REPLACE HANDLER
-app.get("/games_replace", function(request,response) {
-        var result = {
-            file: games
-        }
-        
-        response.send(JSON.stringify(result));
-        });
-
-//GAMES_REPLACE_NEW HANDLER
-app.post("/games_replace_new", jsonPostParser, function(request,response) {
+app.post("/games_replace", jsonPostParser, function(request,response) { //HERE
          var result = {
              message: ""
          };
+         var newGame = request.body;
          
-         fs.writeFile(dataDirectoryPath + "games.json", request.body.file, "utf8", function(err) {
-                      if (err) {
-                          result.message = "ERROR:write";
-                          
-                          response.send(JSON.stringify(result));
-                      }
-                      else {
-                          result.message = "SUCCESS";
-                          
-                          games = JSON.parse(request.body.file);
-                          
-                          response.send(JSON.stringify(result));
-                      }
-                      });
+         console.log("Replacing games.json with: " + JSON.stringify(request.body));
+         
+         var index = searchGamesByName(newGame.name.toLowerCase(),1,false);
+         
+         if (index != -1) {
+             console.log("Game found");
+         
+             games.byName[index].authors = newGame.authors; //I don't want to be able to change rating or reviews information
+             games.byName[index].description = newGame.description;
+             games.byName[index].tags = newGame.tags;
+             games.byName[index].featured = newGame.featured;
+             games.byName[index].url = newGame.url;
+         
+             var found = false;
+             for (var i=0; !found && i<games.byRating.length; i++) {
+                 if (games.byRating[i].index == index) {
+                     games.byRating[i].tags = newGame.tags;
+                     found = true;
+                 }
+             }
+         
+             function proceed() {
+                 result.message = "SUCCESS";
+                 response.send(JSON.stringify(result));
+             }
+             function fail() {
+                 result.message = "ERROR:write";
+                 response.send(JSON.stringify(result));
+             }
+             fileGames(proceed,fail);
+         }
+         else {
+             result.message = "ERROR:gone";
+         }
         });
+
+//GAMES_REMOVE HANDLER
+app.get("/games_remove", function(request,response) { //HERE
+         var result = {
+             message: ""
+         };
+         var oldGame = request.query.game;
+         
+         var index = searchGamesByName(oldGame.toLowerCase(),1,false);
+         
+         if (index != -1) {
+             deleteGameByRating(index,games.byName[index].rating);
+             games.byName.splice(index,1);
+             
+             function proceed() {
+                 result.message = "SUCCESS";
+                 response.send(JSON.stringify(result));
+             }
+             function fail() {
+                 result.message = "ERROR:write";
+                 response.send(JSON.stringify(result));
+             }
+             fileGames(proceed,fail);
+         }
+         else {
+             result.message = "ERROR:gone";
+         }
+         });
 
 //use known domain hubblegames.site to make my other sites known: hubblegames.site/mygame
 app.get("/shuffle", function(request,response) {
@@ -807,19 +994,35 @@ function searchGamesByName(searchName,resultMax,completeReturn) {
     while (result.length < resultMax && !stop) {
         if (!stopP && start+away < games.byName.length) {
             if (games.byName[start+away].name.toLowerCase().indexOf(searchName) > -1 && result.indexOf(games.byName[start+away]) == -1) {
-                result.push(games.byName[start+away]);
-                resultIndex = start+away;
+                if (completeReturn) {
+                    result.push(games.byName[start+away]);
+                }
+                else if (resultMax > 1) {
+                    result.push(start+away);
+                }
+                else {
+                    resultIndex = start+away;
+                    stop = true;
+                }
             }
         }
         else {
             stopP = true;
         }
         
-        if (away > 0) {
+        if (away > 0 && !stop) {
             if (!stopN && start-away >= 0) {
                 if (games.byName[start-away].name.toLowerCase().indexOf(searchName) > -1 && result.indexOf(games.byName[start-away]) == -1) {
-                    result.push(games.byName[start-away]);
-                    resultIndex = start-away;
+                    if (completeReturn) {
+                        result.push(games.byName[start-away]);
+                    }
+                    else if (resultMax > 1) {
+                        result.push(start-away);
+                    }
+                    else {
+                        resultIndex = start-away;
+                        stop = true;
+                    }
                 }
             }
             else {
@@ -836,11 +1039,11 @@ function searchGamesByName(searchName,resultMax,completeReturn) {
         }
     }
     
-    if (completeReturn) {
-        return result;
+    if (resultMax == 1 && !completeReturn) {
+        return resultIndex;
     }
     else {
-        return resultIndex;
+        return result;
     }
 }
 
@@ -860,6 +1063,35 @@ function searchGamesByTag(searchTag,resultMax) {
     }
     
     return result;
+}
+
+//address search in accounts.json
+function searchAccounts(searchAddress,resultMax,completeReturn) {
+    var result = [];
+    var resultIndex = -1;
+    
+    for (var i=0; result.length < resultMax && i<accounts.length; i++) {
+        if (accounts[i].address.indexOf(searchAddress) > -1) {
+            console.log("\t\t" + accounts[i].address + " contains " + searchAddress);
+            
+            if (completeReturn) {
+                result.push(accounts[i]);
+            }
+            else if (resultMax > 1) {
+                result.push(i);
+            }
+            else {
+                resultIndex = i;
+            }
+        }
+    }
+    
+    if (!completeReturn && resultMax == 1) {
+        return resultIndex;
+    }
+    else {
+        return result;
+    }
 }
 
 //the input is the index of the game to move in games.byName. This removes games.byRating[r] (where games.byRating[r].index == index) and finds a new place for it according to games.byName[index].rating

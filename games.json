@@ -73,7 +73,7 @@
         {
             "name": "ZBall 5",
             "authors": ["Cloud Games"],
-            "description": "You are a red ball on a zigzagging path. Collect meet chunks to increase score by tapping to glide left and right. Dont fall off the path.",
+            "description": "You are a red ball on a zigzagging path. Collect meat chunks to increase score by tapping to glide left and right. Dont fall off the path.",
             "tags": ["singleplayer","infinite","arcade","precision","orthogonal","mobile"],
             "rating": 2,
             "reviews": 1,

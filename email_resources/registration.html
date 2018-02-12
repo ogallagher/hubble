@@ -1,0 +1,81 @@
+<html>
+    <!--
+     
+     Author: Owen Gallagher
+     Date: 9 February 2018
+     
+     This is the interactive html version of the registration email.
+     
+     NOTE: server.js replaces text enclosed within (())
+    
+     -->
+    
+    <head>
+        <title>Hubble Registration Email</title>
+        <meta charset="utf-8">
+        
+        <style type="text/css">
+            <!--
+            body {
+                font-family: sans-serif;
+                font: arial;
+                font-size: 18px;
+            }
+        
+            .indented {
+                margin-left: 40px;
+            }
+        
+            .ps {
+                font-style: italic;
+                font-size: 14px;
+                color: #555555;
+            }
+        
+            #hubble_url {
+                width: 80px;
+                height: 80px;
+                margin: 20px;
+                vertical-align: middle;
+            }
+        
+            #signature {
+                font-family: monospace;
+                font-size: 24
+            }
+            -->
+        </style>
+    </head>
+
+    <body>
+        <p>
+            Hi ((username)),<br><br>
+
+            Welcome to hubble! Since you've created an account, you will now be able to rate games and suggest the addition of new ones.
+        </p>
+        
+        <p>
+            So you don't forget, here is your account information:<br>
+            <div class="indented">
+                Account: <b>((address))</b><br>
+                Password: <b>((password))</b>
+            </div>
+        </p>
+        
+        <p>
+            Thanks for your help!
+            
+            <div class="indented">
+                <span id="signature"><b>h u b b l e</b></span>
+                
+                <a href="http://hubblegames.site/">
+                    <img id="hubble_url" src="((logo))" alt="hubblegames.site">
+                </a>
+            </div>
+        </p>
+        
+        <p class="indented ps"><b>
+            PS: If you didn't mean to create an account with hubble, click <a href="http://hubblegames.site/accounts_remove?oldAccount=((address))" id="unsubscribe">here</a> to delete your account and unsubscribe from future emails.
+        </b></p>
+    </body>
+</html>
