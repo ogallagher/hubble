@@ -1,0 +1,73 @@
+<html>
+    <!--
+     
+     Author: Owen Gallagher
+     Date: 16 February 2018
+     
+     This is the interactive html version of the application email.
+     
+     NOTE: server.js replaces text enclosed within (())
+    
+     -->
+    
+    <head>
+        <title>Hubble Application Email</title>
+        <meta charset="utf-8">
+        
+        <style type="text/css">
+            <!--
+            body {
+                font-family: sans-serif;
+                font: arial;
+                font-size: 18px;
+            }
+        
+            .indented {
+                margin-left: 40px;
+            }
+        
+            .ps {
+                font-style: italic;
+                font-size: 14px;
+                color: #555555;
+            }
+        
+            #hubble_url {
+                width: 80px;
+                height: 80px;
+                margin: 20px;
+                vertical-align: middle;
+            }
+        
+            #signature {
+                font-family: monospace;
+                font-size: 24
+            }
+            -->
+        </style>
+    </head>
+
+    <body>
+        <p>
+            Hi ((username)),<br><br>
+
+            Your request to be a curator for hubble has been sent successfully! Check back in a bit to see if you've been approved.
+        </p>
+        
+        <p>
+            Thanks for your help!
+            
+            <div class="indented">
+                <span id="signature"><b>h u b b l e</b></span>
+                
+                <a href="http://hubblegames.site/">
+                    <img id="hubble_url" src="((logo))" alt="hubblegames.site">
+                </a>
+            </div>
+        </p>
+        
+        <p class="ps"><b>
+            Most anyone will get approved to curate within a day or so, when the admin reads the email request; we just like to give the requester time to delete their hubble account if it was created accidentally and such.
+        </b></p>
+    </body>
+</html>

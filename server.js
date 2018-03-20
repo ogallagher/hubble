@@ -14,7 +14,7 @@ var transporter = nodemailer.createTransport({
 
 var fs = require("fs");
 
-var dataDirectoryPath = "./";//"/data/";  //path to data files that won't be overwritten
+var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten
 
 var games = require(dataDirectoryPath + "games.json");
 var accounts = require(dataDirectoryPath + "accounts.json");
@@ -48,7 +48,7 @@ var submissions = require(dataDirectoryPath + "submissions.json");
 var port = process.env.HUBBLE_SERVICE_PORT || 8080;
 var ip = process.env.HOSTNAME || "127.0.0.1";
 
-var RESULT_MAX = 10; //the number of search results will not exceed RESULT_MAX
+var RESULT_MAX = 30; //the number of search results will not exceed RESULT_MAX
 var ADMIN_ADDRESS = "hubbleojpgapps@gmail.com";
 var alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
 var emailTemplate = {
@@ -56,9 +56,13 @@ var emailTemplate = {
     registerSubject: "Hubble Account Information",
     curatorSubject: "New Curator: ",
     submissionSubject: "New Game: * from ",
-    additionSubject: "Submission Accepted for "
+    additionSubject: "Submission Accepted for ",
+    applicationSubject: "Hubble Curation Request Sent"
 };
 var registerEmail = null;
+var applicationEmail = null;
+var curatorEmail = null;
+var additionEmail = null;
 
 var serverDirectoryPath = "/opt/app-root/src/"; //$pwd in openshift remote shell to hubble's server pod
 
@@ -76,15 +80,68 @@ fs.readFile(dataDirectoryPath + "email_resources/registration.html", "utf-8", fu
             
                 fs.readFile(dataDirectoryPath + "email_resources/network1.png", "base64", function(err,data) {
                             if (err) {
-                                console.log("Couldn't read logo image!");
-                                registerEmail = registerEmail.replace(/(<img.*>)/,"http://hubblegames.site/");
+                                registerEmail = registerEmail.replace(/(<img.*>)/,"http://hubblegames.site/"); //replace image link with text link
                             }
                             else {
-                                registerEmail = registerEmail.replace("((logo))","data:image/png;base64," + data);
+                                registerEmail = registerEmail.replace("((logo))","data:image/png;base64," + data); //fill in image link
                             }
                             });
             }
-            }); //HERE
+            });
+
+fs.readFile(dataDirectoryPath + "email_resources/application.html", "utf-8", function(err, data) {
+            if (err) {
+                console.log("Couldn't read registration.html email content!");
+            }
+            else {
+                applicationEmail = data;
+                
+                fs.readFile(dataDirectoryPath + "email_resources/network1.png", "base64", function(err,data) {
+                            if (err) {
+                                applicationEmail = applicationEmail.replace(/(<img.*>)/,"http://hubblegames.site/");
+                            }
+                            else {
+                                applicationEmail = applicationEmail.replace("((logo))","data:image/png;base64," + data);
+                            }
+                            });
+            }
+            });
+
+fs.readFile(dataDirectoryPath + "email_resources/curator.html", "utf-8", function(err, data) {
+            if (err) {
+                console.log("Couldn't read registration.html email content!");
+            }
+            else {
+                curatorEmail = data;
+                
+                fs.readFile(dataDirectoryPath + "email_resources/network1.png", "base64", function(err,data) {
+                            if (err) {
+                                curatorEmail = curatorEmail.replace(/(<img.*>)/,"http://hubblegames.site/");
+                            }
+                            else {
+                                curatorEmail = curatorEmail.replace("((logo))","data:image/png;base64," + data);
+                            }
+                            });
+            }
+            });
+
+fs.readFile(dataDirectoryPath + "email_resources/addition.html", "utf-8", function(err, data) {
+            if (err) {
+                console.log("Couldn't read registration.html email content!");
+            }
+            else {
+                additionEmail = data;
+                
+                fs.readFile(dataDirectoryPath + "email_resources/network1.png", "base64", function(err,data) {
+                            if (err) {
+                                additionEmail = additionEmail.replace(/(<img.*>)/,"http://hubblegames.site/");
+                            }
+                            else {
+                                additionEmail = additionEmail.replace("((logo))","data:image/png;base64," + data);
+                            }
+                            });
+            }
+            });
 
 
 //SEARCH HANDLER
@@ -651,9 +708,6 @@ app.get("/curate", function (request,response) {
             message: ""
         }
         
-        var emailSubject = "";
-        var emailText = "";
-        
         //find user in accounts[]
         var foundAddress = -1;
         
@@ -670,12 +724,17 @@ app.get("/curate", function (request,response) {
             response.send(JSON.stringify(result));
         }
         else {
-            function sendEmail() {
+            function sendEmail(emailSubject,emailDestination,emailText,htmlEmail,done) {
+                if (htmlEmail) {
+                    htmlEmail = htmlEmail.replace(/\(\(username\)\)/g,submission.curator);
+                }
+        
                 transporter.sendMail({
                                          from: emailTemplate.from,
-                                         to: emailTemplate.from,
+                                         to: emailDestination,
                                          subject: emailSubject,
-                                         text: emailText
+                                         text: emailText,
+                                         html: htmlEmail
                                      },
                                      function (error, info) {
                                          if (error) {
@@ -683,7 +742,7 @@ app.get("/curate", function (request,response) {
                                              
                                              response.send(JSON.stringify(result));
                                          }
-                                         else {
+                                         else if (done) {
                                              result.message = "SUCCESS";
                                              response.send(JSON.stringify(result));
                                          }
@@ -698,26 +757,34 @@ app.get("/curate", function (request,response) {
                 accounts[foundAddress].curator = null; //false = nothing, null = requested, true = curator
         
                 function proceed() {
-                    emailSubject = emailTemplate.curatorSubject + submission.curator;
-                    sendEmail();
+                    sendEmail(emailTemplate.curatorSubject + submission.curator,emailTemplate.from,"See subject line.",null,false);
+        
+                    var emailText = "Hi " + submission.curator.substring(submission.curator.indexOf("@")) + ",\n\nYour request to be a curator for hubble has been sent successfully! Check back in a bit to see if you've been approved.\n\nThanks for your help!\nhttp://hubblegames.site/\n\nPS: Most anyone will get approved to curate within a day or so, when the admin reads the email request; we just like to give the requester time to delete their hubble account if it was created accidentally and such.";
+                    sendEmail(emailTemplate.applicationSubject,submission.curator,emailText,applicationEmail,true);
                 }
                 function fail() {
                     result.message = "ERROR:write";
+                    response.send(JSON.stringify(result));
                 }
                 fileAccounts(proceed,fail);
             }
             else if (submission.game == null) {
-                result.message = "ERROR:write";
+                result.message = "SUCCESS:true";
+                response.send(JSON.stringify(result));
             }
             else { //add new game submission to submissions.json
+                submission.game.id = Math.round(Math.random()*1000); //when submissions are edited, id retains identification
                 submissions.push(submission);
         
                 function fail() {
                     result.message = "ERROR:write";
                 }
                 function proceed() {
-                    emailSubject = emailTemplate.submissionSubject.substring(0,emailTemplate.submissionSubject.indexOf("*")) + submission.game.name + emailTemplate.submissionSubject.substring(emailTemplate.submissionSubject.indexOf("*")+1) + submission.curator;
-                    emailText = "Name: " + submission.game.name + "\nURL: " + submission.game.url + "\nAuthors: ";
+                    result.message = "SUCCESS";
+        
+                    var emailSubject = emailTemplate.submissionSubject.replace(/\*/, submission.game.name) + submission.curator;
+        
+                    var emailText = "Name: " + submission.game.name + "\nURL: " + submission.game.url + "\nAuthors: ";
                     for (var i=0; i<submission.game.authors.length; i++) {
                         emailText += submission.game.authors[i];
                         if (i<submission.game.authors.length) {
@@ -732,7 +799,7 @@ app.get("/curate", function (request,response) {
                         }
                     }
         
-                    sendEmail();
+                    sendEmail(emailSubject,emailTemplate.from,emailText,null,true);
                 }
                 fileSubmissions(proceed,fail);
             }
@@ -751,11 +818,47 @@ app.post("/accounts_replace", jsonPostParser, function(request,response) {
          console.log("Updating account: " + newAccountAddress);
          
          if (index != -1) {
+             var approved = false;
+         
+             if (!accounts[index].curator && request.body.newAccount.curator) {
+                 approved = true;
+             }
+         
              accounts.splice(index,1,request.body.newAccount);
          
              function proceed() {
-                 result.message = "SUCCESS";
-                 response.send(JSON.stringify(result));
+                 console.log("CURATOR APPROVED: " + approved);
+         
+                 if (approved) {
+                     var accountName = newAccountAddress.substring(0,newAccountAddress.indexOf("@"));
+         
+                     var emailText = "Congratulations " + accountName + ",\n\nWe've approved you to be a curator for hubble, and much appreciate your future additions to the site.\nCuration is easy; you just find a browser game online (could be your own) that you like, and submit its url along with a bit of other info in hubble. Then, we review the submission and approve it, and you'll be notified that your game was added.\n\nCheers!\nhttp://hubblegames.site/";
+         
+                     var htmlEmail = curatorEmail.replace(/\(\(username\)\)/g,accountName);
+         
+                     transporter.sendMail({
+                                          from: emailTemplate.from,
+                                          to: newAccountAddress,
+                                          subject: "Curator request approved!",
+                                          text: emailText,
+                                          html: htmlEmail
+                                          },
+                                          function (error, info) {
+                                              if (error) {
+                                                  result.message = "ERROR:email";
+                                                  
+                                                  response.send(JSON.stringify(result));
+                                              }
+                                              else {
+                                                  result.message = "SUCCESS";
+                                                  response.send(JSON.stringify(result));
+                                              }
+                                          });
+                 }
+                 else {
+                     result.message = "SUCCESS";
+                     response.send(JSON.stringify(result));
+                 }
              }
              function fail() {
                  result.message = "ERROR:write";
@@ -799,8 +902,8 @@ app.get("/accounts_remove", function(request,response) {
         }
         });
 
-//GAMES_APPEND HANDLER
-app.get("/games_append", function(request,response) {
+//SUBMISSIONS HANDLER
+app.get("/submissions", function(request,response) {
         var result = {
             file: submissions
         };
@@ -808,8 +911,77 @@ app.get("/games_append", function(request,response) {
         response.send(JSON.stringify(result));
         });
 
-//GAMES_APPEND_NEW HANDLER
-app.post("/games_append_new", jsonPostParser, function(request,response) {
+//SUBMISSIONS_REPLACE HANDLER
+app.post("/submissions_replace", jsonPostParser, function(request,response) {
+         var result = {
+             message: ""
+         };
+        
+         var newSubmission = request.body;
+         var found = false;
+         console.log("Replacing submission: " + JSON.stringify(newSubmission));
+         
+         for (var i=0; !found && i<submissions.length; i++) {
+             if (submissions[i].game.id == newSubmission.game.id) {
+                 found = true;
+                 submissions.splice(i,1,newSubmission);
+             }
+         }
+         
+         if (found) {
+             function proceed() {
+                 result.message = "SUCCESS";
+                 response.send(JSON.stringify(result));
+             }
+             function fail() {
+                 result.message = "ERROR:write";
+                 response.send(JSON.stringify(result));
+             }
+             fileSubmissions(proceed,fail);
+         }
+         else {
+             result.message = "ERROR:gone";
+             response.send(JSON.stringify(result));
+         }
+         });
+
+//SUBMISSIONS_REMOVE HANDLER
+app.get("/submissions_remove", function(request,response) {
+        var result = {
+            message: ""
+        };
+        
+        var deletionId = request.query.id;
+        console.log("Deleting submission: " + JSON.stringify(request.query));
+        
+        var found = false;
+        
+        for (var i=0; !found && i<submissions.length; i++) {
+            if (submissions[i].game.id == deletionId) {
+                found = true;
+                submissions.splice(i,1);
+            }
+        }
+        
+        if (found) {
+            function proceed() {
+                result.message = "SUCCESS";
+                response.send(JSON.stringify(result));
+            }
+            function fail() {
+                result.message = "ERROR:write";
+                response.send(JSON.stringify(result));
+            }
+            fileSubmissions(proceed,fail);
+        }
+        else {
+            result.message = "ERROR:gone";
+            response.send(JSON.stringify(result));
+        }
+        });
+
+//GAMES_APPEND HANDLER
+app.post("/games_append", jsonPostParser, function(request,response) {
          var result = {
              message: ""
          };
@@ -846,13 +1018,26 @@ app.post("/games_append_new", jsonPostParser, function(request,response) {
                                               
                                               if (foundSubmission) { //update submissions.json
                                                   function submissionsProceed() {
+                                                      var username = submission.curator.substring(0,submission.curator.indexOf("@"));
+                              
+                                                      var gameDescription;
+                                                      for (var attribute in submission.game) {
+                                                          if (submission.game.hasOwnProperty(attribute)) {
+                                                              gameDescription += attribute + ": " + submission.game[attribute] + "\n";
+                                                          }
+                                                      }
+                              
+                                                      var htmlEmail = additionEmail.replace(/\(\(username\)\)/g,username).replace(/\(\(game\)\)/g,submission.game.name).replace(/\(\(game_info\)\)/g,gameDescription.replace(/\\n/g,"<br>"));
+                              
                                                       //send email to curator
                                                       transporter.sendMail({
                                                                            from: emailTemplate.from,
                                                                            to: submission.curator,
                                                                            subject: emailTemplate.additionSubject + submission.name,
-                                                                           text: submission.curator.substring(0,submission.curator.indexOf("@")) + ",\nThanks so much for your addition to the collection! " + submission.game.name + " was just approved for hubble and is now part of the website :)\n\nKeep them coming,\nhttp://hubblegames.site"
-                                                                           },function (error, info) {
+                                                                           text: username + ",\nThanks so much for your addition to the collection! " + submission.game.name + " was just approved for hubble and is now part of the website.\n\nWe try our best to fill in missing information about the game when we approve game submissions, so if you see any incorrect info, feel free to reply to any emails we send.\nHere's what we included in hubble about the game:\n\n" + gameDescription + "\n\nKeep them coming,\nhttp://hubblegames.site",
+                                                                           html: htmlEmail
+                                                                           },
+                                                                           function (error, info) {
                                                                                if (error) {
                                                                                    result.message = "ERROR:email";
                                                                                    response.send(JSON.stringify(result));
@@ -901,7 +1086,7 @@ app.post("/games_append_new", jsonPostParser, function(request,response) {
          });
 
 //GAMES_REPLACE HANDLER
-app.post("/games_replace", jsonPostParser, function(request,response) { //HERE
+app.post("/games_replace", jsonPostParser, function(request,response) {
          var result = {
              message: ""
          };
@@ -944,7 +1129,7 @@ app.post("/games_replace", jsonPostParser, function(request,response) { //HERE
         });
 
 //GAMES_REMOVE HANDLER
-app.get("/games_remove", function(request,response) { //HERE
+app.get("/games_remove", function(request,response) {
          var result = {
              message: ""
          };

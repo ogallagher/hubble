@@ -1,0 +1,73 @@
+<html>
+    <!--
+     
+     Author: Owen Gallagher
+     Date: 19 February 2018
+     
+     This is the interactive html version of the curator email.
+     
+     NOTE: server.js replaces text enclosed within (())
+    
+     -->
+    
+    <head>
+        <title>Hubble Curator Email</title>
+        <meta charset="utf-8">
+        
+        <style type="text/css">
+            <!--
+            body {
+                font-family: sans-serif;
+                font: arial;
+                font-size: 18px;
+            }
+        
+            .indented {
+                margin-left: 40px;
+            }
+        
+            .ps {
+                font-style: italic;
+                font-size: 14px;
+                color: #555555;
+            }
+        
+            #hubble_url {
+                width: 80px;
+                height: 80px;
+                margin: 20px;
+                vertical-align: middle;
+            }
+        
+            #signature {
+                font-family: monospace;
+                font-size: 24
+            }
+            -->
+        </style>
+    </head>
+
+    <body>
+        <p>
+            Congratulations ((username)),<br><br>
+
+            We've approved you to be a curator for hubble, and much appreciate your future additions to the site.
+        </p>
+        
+        <p>
+            Curation is easy; you just find a browser game online (could be your own) that you like, and submit its url along with a bit of other info in hubble. Then, we review the submission and approve it, and you'll be notified that your game was added.
+        </p>
+        
+        <p>
+            Cheers!
+            
+            <div class="indented">
+                <span id="signature"><b>h u b b l e</b></span>
+                
+                <a href="http://hubblegames.site/">
+                    <img id="hubble_url" src="((logo))" alt="hubblegames.site">
+                </a>
+            </div>
+        </p>
+    </body>
+</html>
