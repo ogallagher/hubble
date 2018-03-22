@@ -16,9 +16,19 @@ var fs = require("fs");
 
 var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten
 
-var games = require(dataDirectoryPath + "games.json");
-var accounts = require(dataDirectoryPath + "accounts.json");
-var submissions = require(dataDirectoryPath + "submissions.json");
+try {
+    var games = require(dataDirectoryPath + "games.json");
+    var accounts = require(dataDirectoryPath + "accounts.json");
+    var submissions = require(dataDirectoryPath + "submissions.json");
+}
+catch (error) { //JSON files failed to load; creating database from local copy in the persistent directory
+    games = require("./games.json");
+    accounts = require("./accounts.json");
+    submissions = require("./submissions.json");
+    fileGames();
+    fileAccounts();
+    fileSubmissions();
+}
 
 
 /*
@@ -71,7 +81,7 @@ var shuffleUrl = "http://shuffle-shuffle.193b.starter-ca-central-1.openshiftapps
 app.use(express.static("public"));
 
 //RENDER EMAIL TEMPLATES INFORMATION
-fs.readFile(dataDirectoryPath + "email_resources/registration.html", "utf-8", function(err, data) {
+fs.readFile("./email_resources/registration.html", "utf-8", function(err, data) {
             if (err) {
                 console.log("Couldn't read registration.html email content!");
             }
@@ -89,9 +99,9 @@ fs.readFile(dataDirectoryPath + "email_resources/registration.html", "utf-8", fu
             }
             });
 
-fs.readFile(dataDirectoryPath + "email_resources/application.html", "utf-8", function(err, data) {
+fs.readFile("./email_resources/application.html", "utf-8", function(err, data) {
             if (err) {
-                console.log("Couldn't read registration.html email content!");
+                console.log("Couldn't read application.html email content!");
             }
             else {
                 applicationEmail = data;
@@ -107,9 +117,9 @@ fs.readFile(dataDirectoryPath + "email_resources/application.html", "utf-8", fun
             }
             });
 
-fs.readFile(dataDirectoryPath + "email_resources/curator.html", "utf-8", function(err, data) {
+fs.readFile("./email_resources/curator.html", "utf-8", function(err, data) {
             if (err) {
-                console.log("Couldn't read registration.html email content!");
+                console.log("Couldn't read curator.html email content!");
             }
             else {
                 curatorEmail = data;
@@ -125,9 +135,9 @@ fs.readFile(dataDirectoryPath + "email_resources/curator.html", "utf-8", functio
             }
             });
 
-fs.readFile(dataDirectoryPath + "email_resources/addition.html", "utf-8", function(err, data) {
+fs.readFile("./email_resources/addition.html", "utf-8", function(err, data) {
             if (err) {
-                console.log("Couldn't read registration.html email content!");
+                console.log("Couldn't read addition.html email content!");
             }
             else {
                 additionEmail = data;
@@ -688,8 +698,13 @@ app.get("/rate", function (request,response) {
                     response.send(JSON.stringify(result));
                 }
         
+                function gamesFail() {
+                    result.message = "ERROR:write";
+                    response.send(JSON.stringify(result));
+                }
+        
                 //update games.json
-                fileGames(gamesProceed);
+                fileGames(gamesProceed,gamesFail);
             }
         
             //update accounts.json
