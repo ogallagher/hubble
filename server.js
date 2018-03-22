@@ -88,7 +88,7 @@ fs.readFile("./email_resources/registration.html", "utf-8", function(err, data) 
             else {
                 registerEmail = data;
             
-                fs.readFile(dataDirectoryPath + "email_resources/network1.png", "base64", function(err,data) {
+                fs.readFile("./email_resources/network1.png", "base64", function(err,data) {
                             if (err) {
                                 registerEmail = registerEmail.replace(/(<img.*>)/,"http://hubblegames.site/"); //replace image link with text link
                             }
@@ -106,7 +106,7 @@ fs.readFile("./email_resources/application.html", "utf-8", function(err, data) {
             else {
                 applicationEmail = data;
                 
-                fs.readFile(dataDirectoryPath + "email_resources/network1.png", "base64", function(err,data) {
+                fs.readFile("./email_resources/network1.png", "base64", function(err,data) {
                             if (err) {
                                 applicationEmail = applicationEmail.replace(/(<img.*>)/,"http://hubblegames.site/");
                             }
@@ -124,7 +124,7 @@ fs.readFile("./email_resources/curator.html", "utf-8", function(err, data) {
             else {
                 curatorEmail = data;
                 
-                fs.readFile(dataDirectoryPath + "email_resources/network1.png", "base64", function(err,data) {
+                fs.readFile("./email_resources/network1.png", "base64", function(err,data) {
                             if (err) {
                                 curatorEmail = curatorEmail.replace(/(<img.*>)/,"http://hubblegames.site/");
                             }
@@ -142,7 +142,7 @@ fs.readFile("./email_resources/addition.html", "utf-8", function(err, data) {
             else {
                 additionEmail = data;
                 
-                fs.readFile(dataDirectoryPath + "email_resources/network1.png", "base64", function(err,data) {
+                fs.readFile("./email_resources/network1.png", "base64", function(err,data) {
                             if (err) {
                                 additionEmail = additionEmail.replace(/(<img.*>)/,"http://hubblegames.site/");
                             }
