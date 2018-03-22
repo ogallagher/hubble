@@ -447,10 +447,10 @@ app.get("/random", function(request,response) {
         }
         
         function nextRandom(previous) {
-            if (previous.length < RESULT_MAX*0.5) {
+            if (previous.length < RESULT_MAX*0.5 && previous.length < games.byRating.length*0.75) {
                 var index = -1;
         
-                while (previous.indexOf(index) > -1) {
+                while (previous.indexOf(index) != -1) {
                     index = Math.round(Math.random() * (games.byName.length-1));
                 }
 
