@@ -1296,7 +1296,7 @@ function searchAccounts(searchAddress,resultMax,completeReturn) {
 }
 
 //the input is the index of the game to move in games.byName. This removes games.byRating[r] (where games.byRating[r].index == index) and finds a new place for it according to games.byName[index].rating
-function moveGameByRating(indexByName/*,oldRating,*/newRating) {
+function moveGameByRating(indexByName/*,oldRating*/,newRating) {
     var result = deleteGameByRating(indexByName/*,oldRating*/);
     
     if (result) {
