@@ -318,18 +318,19 @@ function nextResults(counter,isSearch) {
             
             if (moreSpace[0]) {
                 gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,true);  //name search
-                nextGameByName(counter,0,isSearch,moreSpace[1]); //search games.byName (also calls nextGameByName if moreSpace[1]
+                nextGameByName(counter,0,isSearch,moreSpace[1]); //add results to resultNames (also calls tag search if moreSpace[1])
             }
             else if (moreSpace[1]) {
                 gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
-                nextGameByTag(counter,0,isSearch); //search games.byRating
+                
+                nextGameByTag(counter,0,isSearch); //add results to resultTags
             }
             
             if (moreSpace[2]) {
                 console.log("\t" + searchTerms[counter] + " is an account address...");
                 accountsByAddress = searchAccounts(searchTerms[counter],RESULT_MAX-resultAccounts.length,true); //address search
                 
-                nextAccountByAddress(counter,0,isSearch); //search accounts
+                nextAccountByAddress(counter,0,isSearch); //add results to resultAccounts
             }
         }
         else {
@@ -637,8 +638,8 @@ app.get("/rate", function (request,response) {
                 games.byName[index].reviews = n+1;
             }
         
-            //update games.byRating's order to reflect games.byName[index].rating; moveGameByRating(indexByName,oldRating,newRating) returns boolean
-            if (!moveGameByRating(index,mean,games.byName[index].rating)) {
+            //update games.byRating's order to reflect games.byName[index].rating; moveGameByRating(indexByName,newRating) returns boolean
+            if (!moveGameByRating(index/*,mean*/,games.byName[index].rating)) {
                 result.message = "ERROR:game";
             }
         }
@@ -1035,7 +1036,7 @@ app.post("/games_append", jsonPostParser, function(request,response) {
                                                   function submissionsProceed() {
                                                       var username = submission.curator.substring(0,submission.curator.indexOf("@"));
                               
-                                                      var gameDescription;
+                                                      var gameDescription = "";
                                                       for (var attribute in submission.game) {
                                                           if (submission.game.hasOwnProperty(attribute)) {
                                                               gameDescription += attribute + ": " + submission.game[attribute] + "\n";
@@ -1153,9 +1154,9 @@ app.get("/games_remove", function(request,response) {
          var index = searchGamesByName(oldGame.toLowerCase(),1,false);
          
          if (index != -1) {
-             deleteGameByRating(index,games.byName[index].rating);
-             games.byName.splice(index,1);
-             
+             deleteGameByRating(index/*,games.byName[index].rating*/); //remove from games.byRating and update indeces
+             games.byName.splice(index,1); //remove from games.byName
+        
              function proceed() {
                  result.message = "SUCCESS";
                  response.send(JSON.stringify(result));
@@ -1295,8 +1296,8 @@ function searchAccounts(searchAddress,resultMax,completeReturn) {
 }
 
 //the input is the index of the game to move in games.byName. This removes games.byRating[r] (where games.byRating[r].index == index) and finds a new place for it according to games.byName[index].rating
-function moveGameByRating(indexByName,oldRating,newRating) {
-    var result = deleteGameByRating(indexByName,oldRating);
+function moveGameByRating(indexByName/*,oldRating,*/newRating) {
+    var result = deleteGameByRating(indexByName/*,oldRating*/);
     
     if (result) {
         addGameByRating(indexByName,newRating);
@@ -1305,39 +1306,48 @@ function moveGameByRating(indexByName,oldRating,newRating) {
     return result;
 }
 
-function deleteGameByRating(indexByName,rating) {
-    var start = Math.round(((5-rating)/4) * games.byRating.length);
-    var away = 0;
-    var stop = false;
-    var stopP = false;
-    var stopN = false;
+function deleteGameByRating(indexByName/*,rating*/) {
+//    var start = Math.round(((5-rating)/4) * games.byRating.length);
+//    var away = 0;
+//    var stop = false;
+//    var stopP = false;
+//    var stopN = false;
     var result = false;
     
-    //find game where games.byRating[t].index == indexByName and remove it from games.byRating
-    while (!stop) {
-        if (!stopP && start+away < games.byRating.length && !result) {
-            if (games.byRating[start+away].index == indexByName) {
-                games.byRating.splice(start+away,1);
-                result = true;
-                stop = true;
-            }
+//    while (!stop) {
+//        if (!stopP && start+away < games.byRating.length && !result) {
+//            if (games.byRating[start+away].index == indexByName) {
+//                games.byRating.splice(start+away,1);
+//                result = true;
+//                stop = true;
+//            }
+//        }
+//        else {
+//            stopP = true;
+//        }
+//        
+//        if (!stopN && start-away >= 0 && !result) {
+//            if (games.byRating[start-away].index == indexByName) {
+//                games.byRating.splice(start-away,1);
+//                result = true;
+//                stop = true;
+//            }
+//        }
+//        else {
+//            stopN = true;
+//        }
+//        
+//        away++;
+//    }
+    
+    for (var i=0; i<games.byRating.length; i++) { //HERE: fix indeces and find game where games.byRating[t].index == indexByName and remove it from games.byRating. Then get rid of the above.
+        if (games.byRating[i].index == indexByName) {
+            games.byRating.splice(i,1);
+            result = true;
         }
-        else {
-            stopP = true;
+        else if (games.byRating[i].index > indexByName) {
+            games.byRating[i].index--;
         }
-        
-        if (!stopN && start-away >= 0 && !result) {
-            if (games.byRating[start-away].index == indexByName) {
-                games.byRating.splice(start-away,1);
-                result = true;
-                stop = true;
-            }
-        }
-        else {
-            stopN = true;
-        }
-        
-        away++;
     }
     
     return result;
