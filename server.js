@@ -1343,6 +1343,7 @@ function deleteGameByRating(indexByName/*,rating*/) {
     for (var i=0; i<games.byRating.length; i++) { //HERE: fix indeces and find game where games.byRating[t].index == indexByName and remove it from games.byRating. Then get rid of the above.
         if (games.byRating[i].index == indexByName) {
             games.byRating.splice(i,1);
+            i--;
             result = true;
         }
         else if (games.byRating[i].index > indexByName) {
