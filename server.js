@@ -639,7 +639,7 @@ app.get("/rate", function (request,response) {
             }
         
             //update games.byRating's order to reflect games.byName[index].rating; moveGameByRating(indexByName,newRating) returns boolean
-            if (!moveGameByRating(index/*,mean*/,games.byName[index].rating)) {
+            if (!moveGameByRating(index,games.byName[index].rating)) {
                 result.message = "ERROR:game";
             }
         }
@@ -1154,12 +1154,19 @@ app.get("/games_remove", function(request,response) {
          var index = searchGamesByName(oldGame.toLowerCase(),1,false);
          
          if (index != -1) {
-             deleteGameByRating(index/*,games.byName[index].rating*/); //remove from games.byRating and update indeces
+             deleteGameByRating(index); //remove from games.byRating and update indeces
              games.byName.splice(index,1); //remove from games.byName
         
              function proceed() {
-                 result.message = "SUCCESS";
-                 response.send(JSON.stringify(result));
+                 fs.unlink(dataDirectoryPath + "game_icons/" + oldGame + ".png", function (error) { //remove icon from game_icons/
+                           if (error) {
+                               result.message = "ERROR:icon";
+                           }
+                           else {
+                               result.message = "SUCCESS";
+                           }
+                           response.send(JSON.stringify(result));
+                           });
              }
              function fail() {
                  result.message = "ERROR:write";
@@ -1296,8 +1303,8 @@ function searchAccounts(searchAddress,resultMax,completeReturn) {
 }
 
 //the input is the index of the game to move in games.byName. This removes games.byRating[r] (where games.byRating[r].index == index) and finds a new place for it according to games.byName[index].rating
-function moveGameByRating(indexByName/*,oldRating*/,newRating) {
-    var result = deleteGameByRating(indexByName/*,oldRating*/);
+function moveGameByRating(indexByName,newRating) {
+    var result = deleteGameByRating(indexByName);
     
     if (result) {
         addGameByRating(indexByName,newRating);
@@ -1306,7 +1313,7 @@ function moveGameByRating(indexByName/*,oldRating*/,newRating) {
     return result;
 }
 
-function deleteGameByRating(indexByName/*,rating*/) {
+function deleteGameByRating(indexByName) {
 //    var start = Math.round(((5-rating)/4) * games.byRating.length);
 //    var away = 0;
 //    var stop = false;
@@ -1340,7 +1347,7 @@ function deleteGameByRating(indexByName/*,rating*/) {
 //        away++;
 //    }
     
-    for (var i=0; i<games.byRating.length; i++) { //HERE: fix indeces and find game where games.byRating[t].index == indexByName and remove it from games.byRating. Then get rid of the above.
+    for (var i=0; i<games.byRating.length; i++) { //fix indeces and find game where games.byRating[t].index == indexByName and remove it from games.byRating
         if (games.byRating[i].index == indexByName) {
             games.byRating.splice(i,1);
             i--;
