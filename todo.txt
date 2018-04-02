@@ -25,5 +25,5 @@
 √ √ add bubble.rotate(): all branches shift clockwise 1 step, all branches.branches rotate correctly and update their anchors
 √ server: change RESULT_MAX to be ~30> what to do with author bubbles> > add authors.json> > > links[]> > > name> > in games.json, games.authors is a subset of authors> > game.author.links[] is set by the curator/administrator> > if no links are specified, the default link is a google search of the game and the author: https://google.com/search?q=author+game&rls=en&ie=UTF-8&oe=UTF-8> > edit curation and administration according to addition of author.links
 > server: improve password encrypt()
-? only this.bubbles.updateAnchor() if this.extension changes or window is resized
+√ only this.bubbles.updateAnchor() if this.extension changes or window is resized
 ? server: fix /random handler
