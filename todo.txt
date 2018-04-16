@@ -23,7 +23,29 @@
 √ √ √ /accounts
 √ √ √ /random√ √ the icon is: (•••)√ √ when pressed, parent.bubbles changes to display the rest of the results (disable selection with bubble.link = "/more")
 √ √ add bubble.rotate(): all branches shift clockwise 1 step, all branches.branches rotate correctly and update their anchors
-√ server: change RESULT_MAX to be ~30> what to do with author bubbles> > add authors.json> > > links[]> > > name> > in games.json, games.authors is a subset of authors> > game.author.links[] is set by the curator/administrator> > if no links are specified, the default link is a google search of the game and the author: https://google.com/search?q=author+game&rls=en&ie=UTF-8&oe=UTF-8> > edit curation and administration according to addition of author.links
-> server: improve password encrypt()
+√ server: change RESULT_MAX to be ~30> what to do with author bubbles> • add authors.json> · • links[]> · • name
+> · > edit /curate handler to modify authors
+> · > edit /games_append handler to modify authors> > if no links are specified, the default link is a google search of the game and the author: https://google.com/search?q=author+game&rls=en&ie=UTF-8&oe=UTF-8> > edit curation and administration according to addition of author.links
+> > > curator suggests author name and links
+> > > admin: reviews suggestions for new and existing authors to attribute to the game. Existing authors are a result of server’s /author search handler
+> > > admin: can edit authors to modify author.links
+> > server: /author search handler (searches authors, not games by a given author)
+> > add searchByAuthor for games
+> > > server: modify games.byTag to include authors[] list
+> > > server: within searchGamesByTag, also check authors and add results to another search results array to have: nameResults, tagResults, and now authorResults
+> > > client: modify games.authors[i].select() to open a search of games by that author
+> > > client: add results by author to search bubble
+> > server: keep games array synchronized with authors array
+> > > game.authors pulls links from authors on demand
+> > > authors.remove() => when server tries to pull that author’s links for a game and returns null, that author is deleted from game.authors
+> server: improve password encryption
+> > picks a seed
+> > scrambles using the seed, bounded with the remainder function. The resulting characters have multiple possible original characters.
+> > appends the seed to the end of the code and stores in accounts[i].password
 √ only this.bubbles.updateAnchor() if this.extension changes or window is resized
 ? server: fix /random handler
+> improve search functions to use the latter letters when hashing
+> consolidate tag, name, and author search types
+> > client: attach all incoming search results to the search bubble
+> ? client: for all tag and author auto-searches, fix references to search bubble
+> > server: for each term, check name, then tag, then author, using a single results array
