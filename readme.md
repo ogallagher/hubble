@@ -144,26 +144,26 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
 - [x] server: admin check against address instead of position in accounts array
 - [x] move .json files and game_icons directory so they aren’t overwritten
 - [x] fix file path environment variable 
-    x create /hubble_data directory on google drive with hubble account (hubble_google_drive)
-    x add googleapis js module to the server
-    x use googleapis to retrieve .json files from hubble_google_drive/hubble_data
-    x add an sql database to hubble
-        x create and configure the database
-        x link database to hubble (grab pertinent credentials)
-            x add mysql module to server
-            x username: hubblegames
-            x password: hubbleconnect
-            x db name: hubbledb
-        x create dbinit.sql file
-            x add tables to database
-            x accounts
-            x games
-            x submissions
-            x fill tables
-    x replace require() and fs.(read()/write()) functions with mysql code
-        x select
-        x insert
-        x delete
+   - [x] X create /hubble_data directory on google drive with hubble account (hubble_google_drive)
+   - [x] X add googleapis js module to the server
+   - [x] X use googleapis to retrieve .json files from hubble_google_drive/hubble_data
+   - [x] X add an sql database to hubble
+       - [x] X create and configure the database
+       - [x] X link database to hubble (grab pertinent credentials)
+           - [x] X add mysql module to server
+           - [x] X username: hubblegames
+           - [x] X password: hubbleconnect
+           - [x] X db name: hubbledb
+       - [x] X create dbinit.sql file
+           - [x] X add tables to database
+           - [x] X accounts
+           - [x] X games
+           - [x] X submissions
+           - [x] X fill tables
+   - [x] X replace require() and fs.(read()/write()) functions with mysql code
+       - [x] X select
+       - [x] X insert
+       - [x] X delete
     - [x] add persistent storage volume hubblestorage in the /data directory
         - [x] move the .json and game_icons files there
         - [x] change path in server.js
@@ -181,7 +181,7 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
     - [x] add /logout to Bubble.select()
 - [x] use invisible html form with image input for admin’s game icon file upload
 - [x] server.js: fix use of fileGames,fileAccounts,fileSubmissions for the new (proceed,fail) procedural arguments
-- [.] write the help menu
+- [ ] write the help menu
     - [x] read: tap on the bubble again to flip to the next page
     - [x] return: tap on the background to return to the previous bubble
     - [x] select: tap on a bubble to select it; drag the finger around to screen to see labels
@@ -198,13 +198,13 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
     - [x] client: add resultant game branches to random bubble
     - [x] client: update display(), fix references to searchedGames
 - [x] create admin interface for hubbleojpgapps@gmail.com (replace curate bubble with an edit.(accounts,games) bubble)
-    x accounts
+   - [x] X accounts
         - [x] accounts.replace
             - [x] open a prompt filled in with the current data from accounts.json
             - [x] on close of prompt, accounts.json file is replaced with the edited version
-        x accounts.curators
-            x branches are usernames and YES/NO. They switch boolean values on select
-            x on second select, edited accounts are send to the server
+        - [x] X accounts.curators
+           - [x] X branches are usernames and YES/NO. They switch boolean values on select
+           - [x] X on second select, edited accounts are send to the server
     - [x] games.append (+)
         - [x] add an add branch for every submission from submissions.json
         - [x] append.link = /games_append_new
