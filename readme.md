@@ -39,7 +39,7 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
             - [x] numStars = bubble.label.name if (bubble.link == “/rate” && this.focused)
             - [x] if (numStars >= #.label.name || #.focused), fill(255) 
         - [x] if address == "", prompt for the user to register or log in on select()
-        - [x] if address.length < 0, add branches to game.rating, which send /rate get to server on select()
+        - [x] if address.length lessthan 0, add branches to game.rating, which send /rate get to server on select()
         - [x] handle server’s response to /rate: update game.rating and account.reviews
             - [x] fix alterations of game.rating and account.reviews. The former appends as a string, and the latter doesn’t seem to change at all -> I think the query’s JSON wasn’t parsed correctly server-side
     - [x] server: add game.reviews to store the number of people that have rated the game
@@ -70,12 +70,12 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
     - [x] server: handle /register and /login html requests
     - [x] server: add accounts.json to store emails and passwords
     - [x] server: use filesystems module to rewrite accounts.json in /register handling
-- [x] if bubble.link is a dialogue box, and if bubble.link.length < SEAL_MAX, display bubble.link around the bottom like label.name, but without grow/shrink and disappear
+- [x] if bubble.link is a dialogue box, and if bubble.link.length lessthan SEAL_MAX, display bubble.link around the bottom like label.name, but without grow/shrink and disappear
 - [x] fix authors bubble to display each author on a separate branch
 - [x] do not display bubble.link in the corner if already displayed around the bubble
 - [x] fix display of bubble.label.name
     - [x] create client-wide and mobile-wide variable: hovering
-    - [x] hovering = true, if (distance(bubble,cursor) < bubble.size*0.5 && touches.length - [ ] 0)
+    - [x] hovering = true, if (distance(bubble,cursor) lessthan bubble.size*0.5 && touches.length lessthan 0)
     - [x] background darkens
     - [x] increase circumference for bubble.label.name display
     - [x] create bubble.touched variable (to see which bubble is activating hovering)
@@ -101,7 +101,7 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
     - [x] server: encrypt incoming password to check if login is valid
 - [x] server: prevent redundant search results that appear for overlapping search terms
 - [x] server: update games.byTag’s order in the /rate request handler function by deleting the edited game from its current position and then putting it back according to newRating
-- [x] client: #bubble.fill if account.reviews contains it’s game and account.reviews[r].rating >= this.label.name
+- [x] client: #bubble.fill if account.reviews contains it’s game and account.review.rating >= this.label.name
 - [x] client: don't mute stars in mobile
 - [x] client: don't deselect and return home after rating or trying to rate
 - [x] client: add account.information...
@@ -111,9 +111,9 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
     - [x] age
     - [x] curator status
     - [x] the above categories are stored in an info (i) bubble’s dialogue box
-- [x] sometimes passwords won’t save correctly and aren’t recognized by the server upon login…
+- [x] sometimes passwords won’t save correctly and aren’t recognized by the server upon login...
 - [x] client: move cursor to center after release in select() function
-- [x] client: move cursor to corner if bubble.link is a text box—— too difficult to implement; not worth the trouble
+- [x] client: move cursor to corner if bubble.link is a text box... too difficult to implement; not worth the trouble
 - [x] client: add loading variable to Bubble class, so other bubbles don’t pulse when fetching information
     - [x] fix loading animation for origin bubbles, so they stop pulsing when their branches are no longer loading
 - [x] create way to add games
@@ -129,7 +129,7 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
             - [x] then send /curate request to server with the specified curator and game data to be stored in submissions.json, until the hubble admin handles the new addition
         - [x] on select, it not curator, send /curate request to server
     - [x] server: create submissions.json
-    - [x] server: add account.[curator,bday] and change registration and login handlers
+    - [x] server: add account.(curator,bday) and change registration and login handlers
     - [x] server: handle registration
     - [x] server: handle /curate request
         - [x] if account.curator, add submission to submissions.json
@@ -176,7 +176,7 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
     - [x] add hubblegames.site/shuffle domain to iwantmyname.com’s index
 - [x] update (server.js).(/search) handler so nextGameBy_() functions are not defined in local scopes (should make it faster)
 - [x] logout button
-    - [x] logout icon: arrow to rectangle, exit sign,…
+    - [x] logout icon: arrow to rectangle, exit sign,...
     - [x] introduce logout bubble by replacing the register and login bubbles
     - [x] add /logout to Bubble.select()
 - [x] use invisible html form with image input for admin’s game icon file upload
@@ -270,8 +270,8 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
 - [x] server: change RESULT_MAX to be ~30
 - [ ] what to do with author bubbles
     - [ ] add authors.json
-        - [ ] links
-        - [ ] name
+        - [x] links
+        - [x] name
         - [ ] edit /curate handler to modify authors
         - [ ] edit /games_append handler to modify authors
     - [ ] if no links are specified, the default link is a google search of the game and the author: https://google.com/search?q=author+game&rls=en&ie=UTF-8&oe=UTF-8
@@ -288,6 +288,7 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
     - [ ] server: keep games array synchronized with authors array
         - [ ] game.authors pulls links from authors on demand
         - [ ] authors.remove() => when server tries to pull that author’s links for a game and returns null, that author is deleted from game.authors
+        - [ ] authors.update() => if author.name changes, all games with that author must update to match
 - [ ] server: improve password encryption
     - [ ] picks a seed
     - [ ] scrambles using the seed, bounded with the remainder function. The resulting characters have multiple possible original characters.
@@ -297,5 +298,5 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
 - [ ] improve search functions to use the latter letters when hashing
 - [ ] consolidate tag, name, and author search types
     - [ ] client: attach all incoming search results to the search bubble
-    - [ ] ?client: for all tag and author auto-searches, fix references to search bubble
+    - [ ] ? client: for all tag and author auto-searches, fix references to search bubble
     - [ ] server: for each term, check name, then tag, then author, using a single results array

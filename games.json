@@ -52,7 +52,7 @@
         },
         {
             "name": "Slither",
-            "authors": ["Anonymous Group"],
+            "authors": [],
             "description": "Each player is a worm. Guide your worm with the mouse or arrow keys to eat and grow. If you crash into another's body, you die.",
             "tags": ["multiplayer","action","snake","io","survival","infinite"],
             "rating": 4,
@@ -62,7 +62,7 @@
         },
         {
             "name": "Wings",
-            "authors": ["Anonymous Group"],
+            "authors": [],
             "description": "Each player is a plane. Use the mouse to steer and shoot. Lots of upgrades. Shoot down other planes and stay alive to move up the leaderboard.",
             "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
             "rating": 3,
@@ -84,34 +84,42 @@
     "byRating": [
         {
             "tags": ["3d","shooting","action","io","reflexes","multiplayer"],
+            "authors": ["Sidney de Vries"],
             "index": 2
         },
         {
             "tags": ["multiplayer","strategy","conquest","simple","snake","io","2d"],
+            "authors": ["Voodo"],
             "index": 3
         },
         {
             "tags": ["strategy","multiplayer","2d","board","chess","turnbased"],
+            "authors": ["Owen Gallagher"],
             "index": 4
         },
         {
             "tags" : ["infinite","arcade","singleplayer","2d","simple","platforms","jumping","mobile"],
+            "authors": ["Lima Sky","Cloud Games"],
             "index": 0
         },
         {
             "tags": ["multiplayer","action","snake","io","survival","infinite"],
+            "authors": [],
             "index": 5
         },
         {
             "tags": ["multiplayer","action","planes","io","survival","infinite","shooting"],
+            "authors": [],
             "index": 6
         },
         {
             "tags" : ["infinite","arcade","singleplayer","2d","simple","precision","mobile"],
+            "authors": ["Nguyen Ha Dong","dotGEARS"],
             "index": 1
         },
         {
             "tags": ["singleplayer","infinite","arcade","precision","orthogonal","mobile"],
+            "authors": ["Cloud Games"],
             "index": 7
         }
     ]
