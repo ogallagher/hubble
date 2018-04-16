@@ -1,6 +1,6 @@
 <p>
     <a href="http://hubblegames.site/">
-        <img src="https://github.com/ogallagher/hubble/blob/master/email_resources/network1.png" width="100px" height="100px">
+        <img src="https://github.com/ogallagher/hubble/blob/master/email_resources/network1.png" width="250px" height="250px">
     </a>
 </p>
 
