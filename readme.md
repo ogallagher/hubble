@@ -268,18 +268,19 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
     - [x] when pressed, parent.bubbles changes to display the rest of the results (disable selection with bubble.link = "/more")
     - [x] add bubble.rotate(): all branches shift clockwise 1 step, all branches.branches rotate correctly and update their anchors
 - [x] server: change RESULT_MAX to be ~30
-- [ ] what to do with author bubbles
-    - [ ] add authors.json
+- [ ] ...what to do with author bubbles
+    - [ ] ...add authors.json
         - [x] links
         - [x] name
-        - [ ] edit /curate handler to modify authors
-        - [ ] edit /games_append handler to modify authors
-    - [ ] if no links are specified, the default link is a google search of the game and the author: https://google.com/search?q=author+game&rls=en&ie=UTF-8&oe=UTF-8
-    - [ ] edit curation and administration according to addition of author.links
-        - [ ] curator suggests author name and links
+        - [x] edit /curate handler to modify authors
+        - [ ] ...edit /games_append handler to modify authors
+    - [ ] client: if no links are specified by the server, the default link is a google search of the game and the author: https://google.com/search?q=author+game&rls=en&ie=UTF-8&oe=UTF-8
+    - [ ] ...edit curation and administration according to addition of author.links
+        - [x] curator suggests author name and links
+        - [ ] ...admin: view game.authors bubbles
         - [ ] admin: reviews suggestions for new and existing authors to attribute to the game. Existing authors are a result of server’s /author search handler
         - [ ] admin: can edit authors to modify author.links
-    - [ ] server: /author search handler (searches authors, not games by a given author)
+    - [x] server: /author search handler (searches authors, not games by a given author)
     - [ ] add searchByAuthor for games
         - [ ] server: modify games.byTag to include authors list
         - [ ] server: within searchGamesByTag, also check authors and add results to another search results array to have: nameResults, tagResults, and now authorResults
@@ -295,8 +296,13 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
     - [ ] appends the seed to the end of the code and stores in account.password
 - [x] only this.bubbles.updateAnchor() if this.extension changes or window is resized
 - [x] server: fix /random handler
-- [ ] improve search functions to use the latter letters when hashing
+- [ ] improve search functions by using the latter letters when hashing
 - [ ] consolidate tag, name, and author search types
     - [ ] client: attach all incoming search results to the search bubble
     - [ ] ? client: for all tag and author auto-searches, fix references to search bubble
     - [ ] server: for each term, check name, then tag, then author, using a single results array
+- [ ] optimize hubble tree by using polymorphism on bubbles: bubble.select() does different things for different types of bubbles
+- [ ] mobile client: fix search.select()
+- [ ] ? client: fix admin game icon upload by taking care of multiple submissions
+- [x] add icons for the search bar, favorites menu, and windows and ios shortcut icons
+- [ ] server: unify game search results between byName, byTag, and byAuthor

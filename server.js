@@ -14,21 +14,34 @@ var transporter = nodemailer.createTransport({
 
 var fs = require("fs");
 
-var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten
+//var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten
+var dataDirectoryPath = "./"; //HERE: for testing
+
+var games,accounts,submissions,authors = null;
 
 try {
-    var games = require(dataDirectoryPath + "games.json");
-    var accounts = require(dataDirectoryPath + "accounts.json");
-    var submissions = require(dataDirectoryPath + "submissions.json");
+    games = require(dataDirectoryPath + "games.json");
+    accounts = require(dataDirectoryPath + "accounts.json");
+    submissions = require(dataDirectoryPath + "submissions.json");
+    authors = require(dataDirectoryPath + "authors.json");
 }
 catch (error) { //JSON files failed to load; creating database from local copy in the persistent directory
     games = require("./games.json");
     accounts = require("./accounts.json");
     submissions = require("./submissions.json");
-    fileGames();
-    fileAccounts();
-    fileSubmissions();
+    authors = require("./authors.json");
+    
+//    fileGames(); //HERE: for testing
+//    fileAccounts();
+//    fileSubmissions();
+//    fileAuthors();
 }
+
+var SOURCE_CODES = {
+    GAMES: 0,
+    ACCOUNTS: 1,
+    AUTHORS: 2
+};
 
 
 /*
@@ -159,15 +172,17 @@ var searchTerms = null;
 var resultNames = [];
 var resultTags = [];
 var resultAccounts = [];
+var resultAuthors = [];
 var result = null;
 
 var gamesByName = null;
 var gamesByTag = null;
 var accountsByAddress = null;
+var authorsByName = null;
 
 var responseObject = null;
 
-function nextGameByTag(counter,tagCounter,isSearch) {
+function nextGameByTag(counter,tagCounter,source) {
     if (tagCounter < gamesByTag.length) {
         var found = false;
         
@@ -203,19 +218,19 @@ function nextGameByTag(counter,tagCounter,isSearch) {
                         console.log("\t\t" + game.name);
                         resultTags.push(game);
                         
-                        nextGameByTag(counter,tagCounter+1,isSearch);
+                        nextGameByTag(counter,tagCounter+1,source);
                         });
         }
         else {
-            nextGameByTag(counter,tagCounter+1,isSearch);
+            nextGameByTag(counter,tagCounter+1,source);
         }
     }
     else {
-        nextResults(counter+1,isSearch);
+        nextResults(counter+1,source);
     }
 }
 
-function nextGameByName(counter,nameCounter,isSearch,proceedToTags) {
+function nextGameByName(counter,nameCounter,source,proceedToTags) {
     if (nameCounter < gamesByName.length) {
         var found = false;
         
@@ -251,24 +266,24 @@ function nextGameByName(counter,nameCounter,isSearch,proceedToTags) {
                         console.log("\t\t" + game.name);
                         resultNames.push(game);
                         
-                        nextGameByName(counter,nameCounter+1,isSearch,proceedToTags);
+                        nextGameByName(counter,nameCounter+1,source,proceedToTags);
                         });
         }
         else {
-            nextGameByName(counter,nameCounter+1,isSearch,proceedToTags);
+            nextGameByName(counter,nameCounter+1,source,proceedToTags);
         }
     }
     else if (proceedToTags) {
         gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
-        nextGameByTag(counter,0,isSearch);
+        nextGameByTag(counter,0,source);
     }
     else {
-        nextResults(counter+1,isSearch);
+        nextResults(counter+1,source);
     }
 }
 
-function nextAccountByAddress(counter,accountCounter,isSearch) {
-    console.log("\tnextAccountByAddress(): counter=" + counter + " a=" + accountCounter + " isSearch=" + isSearch);
+function nextAccountByAddress(counter,accountCounter,source) {
+    console.log("\tnextAccountByAddress(): counter=" + counter + " a=" + accountCounter + " source=" + source);
     if (accountCounter < accountsByAddress.length) {
         var found = false;
         
@@ -279,77 +294,120 @@ function nextAccountByAddress(counter,accountCounter,isSearch) {
         }
         
         if (!found) {
-            console.log("\tpush(" + accountsByAddress[accountCounter] + ")");
             resultAccounts.push(accountsByAddress[accountCounter]);
             
-            nextAccountByAddress(counter,accountCounter+1,isSearch);
+            nextAccountByAddress(counter,accountCounter+1,source);
         }
         else {
             console.log("\t" + accountsByAddress[accountCounter] + " already in resultAccounts");
-            nextAccountByAddress(counter,accountCounter+1,isSearch);
+            nextAccountByAddress(counter,accountCounter+1,source);
         }
     }
     else {
-        nextResults(counter+1,isSearch);
+        nextResults(counter+1,source);
     }
 }
 
-function nextResults(counter,isSearch) {
+function nextAuthorByName(counter,authorCounter,source) {
+    console.log("\nextAuthorByName(): counter=" + counter + " a=" + authorCounter + " source=" + source);
+    if (authorCounter < authorsByName.length) {
+        var found = false;
+        
+        for (var i=0; i<resultAuthors.length && !found; i++) {
+            if (resultAuthors[i].name == authorsByName[authorCounter].name) {
+                found = true;
+            }
+        }
+        
+        if (!found) {
+            resultAuthors.push(authorsByName[authorCounter]);
+            
+            nextAuthorByName(counter,authorCounter+1,source);
+        }
+        else {
+            console.log("\t" + authorsByName[authorCounter] + " already in resultAuthors");
+            nextAuthorByName(counter,authorCounter+1,source);
+        }
+    }
+    else {
+        nextResults(counter+1,source);
+    }
+
+}
+
+function nextResults(counter,source) {
     var moreTerms = false; //there are more search terms AND there is space in the results array(s)
     
-    var moreSpace = [false,false,false]; //[names,tags,accounts]
-    if (isSearch) {
+    var moreSpace = [false,false,false,false]; //[names,tags,accounts]
+    
+    if (source == SOURCE_CODES.GAMES) {
         moreSpace[0] = (resultNames.length < RESULT_MAX);
         moreSpace[1] = (resultTags.length < RESULT_MAX);
         
         moreTerms = (counter < searchTerms.length);
     }
-    else {
+    else if (source == SOURCE_CODES.ACCOUNTS) {
         moreSpace[2] = (resultAccounts < RESULT_MAX);
         
         moreTerms = (counter < searchTerms.length);
     }
+    else { //source == SOURCE_CODES.AUTHORS
+        moreSpace[3] = (resultAuthors < RESULT_MAX);
+        
+        moreTerms = (counter < searchTerms.length);
+    }
     
-    console.log("nextResults(): counter=" + counter + " isSearch=" + isSearch);
+    console.log("nextResults(): counter=" + counter + " source=" + source);
     
     if (moreTerms) {
         if (searchTerms[counter].length > 0) {
             console.log("\tloading results for " + searchTerms[counter]);
             
             if (moreSpace[0]) {
-                gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,true);  //name search
-                nextGameByName(counter,0,isSearch,moreSpace[1]); //add results to resultNames (also calls tag search if moreSpace[1])
+                console.log("\t" + searchTerms[counter] + " is for a game name...");
+                gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,source);  //name search
+                nextGameByName(counter,0,source,moreSpace[1]); //add results to resultNames (also calls tag search if moreSpace[1])
             }
             else if (moreSpace[1]) {
+                console.log("\t" + searchTerms[counter] + " is for a game tag...");
                 gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
                 
-                nextGameByTag(counter,0,isSearch); //add results to resultTags
+                nextGameByTag(counter,0,source); //add results to resultTags
             }
-            
-            if (moreSpace[2]) {
+            else if (moreSpace[2]) {
                 console.log("\t" + searchTerms[counter] + " is an account address...");
                 accountsByAddress = searchAccounts(searchTerms[counter],RESULT_MAX-resultAccounts.length,true); //address search
                 
-                nextAccountByAddress(counter,0,isSearch); //add results to resultAccounts
+                nextAccountByAddress(counter,0,source); //add results to resultAccounts
+            }
+            else if (moreSpace[3]) {
+                console.log("\t" + searchTerms[counter] + " is an author name...");
+                authorsByName = searchAuthors(searchTerms[counter],RESULT_MAX-resultAuthors.length); //authors search
+                
+                nextAuthorByName(counter,0,source); //add results to resultAuthors
             }
         }
         else {
-            nextResults(counter+1,isSearch);
+            nextResults(counter+1,source);
         }
     }
     else {
         console.log("search complete.");
         
-        if (isSearch) {
+        if (source == SOURCE_CODES.GAMES) {
             console.log("resultNames: " + resultNames.length);
             console.log("resultTags: " + resultTags.length);
             
             result.name = resultNames;
             result.tags = resultTags;
         }
-        else {
+        else if (source == SOURCE_CODES.ACCOUNTS) {
             console.log("resultAccounts: " + resultAccounts.length);
             result.address = resultAccounts;
+        }
+        else { // source == SOURCE_CODES.AUTHORS
+            console.log("resultAuthors: " + resultAuthors.length);
+            result.authors = resultAuthors;
         }
         
         responseObject.send(JSON.stringify(result));
@@ -357,6 +415,8 @@ function nextResults(counter,isSearch) {
 }
 app.get("/search", function(request,response) {
         //search games.json by name and tags
+        //HERE: unify name and tag search results
+        //HERE: ...add searching by author
         searchTerms = request.query.terms;
         resultNames = [];
         resultTags = [];
@@ -370,7 +430,7 @@ app.get("/search", function(request,response) {
         
         console.log("/search request received");
         
-        nextResults(0,true); //counter,isSearch
+        nextResults(0,SOURCE_CODES.GAMES); //counter,source=games
         });
 
 //ACCOUNTS HANDLER (SEARCH ACCOUNTS)
@@ -385,8 +445,22 @@ app.get("/accounts", function(request,response) {
         
         responseObject = response;
         
-        nextResults(0,false);
+        nextResults(0,SOURCE_CODES.ACCOUNTS); //counter,source=accounts
         });
+
+app.get("/authors", function(request,response) {
+        //search authors.json by name
+        searchTerms = request.query.terms;
+        resultAuthors = [];
+        result = {
+            message: "",
+            authors: []
+        };
+        
+        responseObject = response;
+        
+        nextResults(0,SOURCE_CODES.AUTHORS); //counter,source=authors
+        })
 
 
 //FEATURED HANDLER
@@ -801,10 +875,10 @@ app.get("/curate", function (request,response) {
                     var emailSubject = emailTemplate.submissionSubject.replace(/\*/, submission.game.name) + submission.curator;
         
                     var emailText = "Name: " + submission.game.name + "\nURL: " + submission.game.url + "\nAuthors: ";
-                    for (var i=0; i<submission.game.authors.length; i++) {
-                        emailText += submission.game.authors[i];
-                        if (i<submission.game.authors.length) {
-                            emailText += ", ";
+                    for (var i=0; i<submission.game.authors.length; i++) { //HERE: modify to include authors.links
+                        emailText += "\n\t" + submission.game.authors[i] + ": ";
+                        for (var j=0; j<submission.game.authors[i].links.length; j++) {
+                            emailText += submission.game.authors[i].links[j] + " ";
                         }
                     }
                     emailText += "\nDescription: " + submission.game.description + "\nRating: " + submission.game.rating + "\nTags: ";
@@ -1022,6 +1096,9 @@ app.post("/games_append", jsonPostParser, function(request,response) {
                                               response.send(JSON.stringify(result));
                                           }
                                           function gamesProceed() {
+                                              //HERE: add new authors and/or add new links to existing authors. Then update authors.json
+                                              updateAuthors(submission.game.authors);
+                              
                                               //remove old submission from submissions
                                               var foundSubmission = -1;
                                               for (var i=0; i<submissions.length && foundSubmission == -1; i++) {
@@ -1302,6 +1379,21 @@ function searchAccounts(searchAddress,resultMax,completeReturn) {
     }
 }
 
+//name search in authors.json
+function searchAuthors(searchName,resultMax) {
+    var result = [];
+    
+    for (var i=0; result.length < resultMax && i<authors.length; i++) {
+        if (authors[i].name.indexOf(searchName) > -1) {
+            console.log("\t\t" + authors[i].name + " contains " + searchName);
+            
+            result.push(authors[i]);
+        }
+    }
+    
+    return result;
+}
+
 //the input is the index of the game to move in games.byName. This removes games.byRating[r] (where games.byRating[r].index == index) and finds a new place for it according to games.byName[index].rating
 function moveGameByRating(indexByName,newRating) {
     var result = deleteGameByRating(indexByName);
@@ -1314,38 +1406,7 @@ function moveGameByRating(indexByName,newRating) {
 }
 
 function deleteGameByRating(indexByName) {
-//    var start = Math.round(((5-rating)/4) * games.byRating.length);
-//    var away = 0;
-//    var stop = false;
-//    var stopP = false;
-//    var stopN = false;
     var result = false;
-    
-//    while (!stop) {
-//        if (!stopP && start+away < games.byRating.length && !result) {
-//            if (games.byRating[start+away].index == indexByName) {
-//                games.byRating.splice(start+away,1);
-//                result = true;
-//                stop = true;
-//            }
-//        }
-//        else {
-//            stopP = true;
-//        }
-//        
-//        if (!stopN && start-away >= 0 && !result) {
-//            if (games.byRating[start-away].index == indexByName) {
-//                games.byRating.splice(start-away,1);
-//                result = true;
-//                stop = true;
-//            }
-//        }
-//        else {
-//            stopN = true;
-//        }
-//        
-//        away++;
-//    }
     
     for (var i=0; i<games.byRating.length; i++) { //fix indeces and find game where games.byRating[t].index == indexByName and remove it from games.byRating
         if (games.byRating[i].index == indexByName) {
@@ -1433,6 +1494,7 @@ function addGameByRating(indexByName,rating) {
     
     var game = {
         tags: games.byName[indexByName].tags,
+        authors: games.byName[indexByName].authors, //HERE: store author info in games.byName
         index: indexByName
     }
     
@@ -1485,6 +1547,12 @@ function addGameByRating(indexByName,rating) {
     games.byRating.splice(location,0,game); //splice(location,#_delete,[insert_1,insert_2,...])
 }
 
+//check game.authors list against authors.json to find new authors and links
+function updateAuthors(newAuthors) {
+    //HERE: fill in authors update function
+    
+}
+
 //update games.json to match games
 function fileGames(proceed,fail) {//this is ugly, but I want not to proceed until I get the outcome of the asynchronous fs.writeFile() call
     fs.writeFile(dataDirectoryPath + "games.json", JSON.stringify(games), function(err) {
@@ -1516,6 +1584,20 @@ function fileAccounts(proceed,fail) {
 //update submissions.json to match submissions
 function fileSubmissions(proceed,fail) {
     fs.writeFile(dataDirectoryPath + "submissions.json", JSON.stringify(submissions), function(err) {
+                 if (err) {
+                     if (fail != null) {
+                         fail();
+                     }
+                 }
+                 else if (proceed != null) {
+                     proceed();
+                 }
+                 });
+}
+
+//update authors.json to match authors
+function fileAuthors(proceed,fail) {
+    fs.writeFile(dataDirectoryPath + "authors.json", JSON.stringify(authors), function(err) {
                  if (err) {
                      if (fail != null) {
                          fail();
