@@ -14,27 +14,41 @@ var transporter = nodemailer.createTransport({
 
 var fs = require("fs");
 
-//var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten
-var dataDirectoryPath = "./"; //HERE: for testing
+var dataDirectoryPath = "/data/";  //path to data files that won't be overwritten
+//var dataDirectoryPath = "./"; //HERE: for testing
 
 var games,accounts,submissions,authors = null;
 
 try {
     games = require(dataDirectoryPath + "games.json");
-    accounts = require(dataDirectoryPath + "accounts.json");
-    submissions = require(dataDirectoryPath + "submissions.json");
-    authors = require(dataDirectoryPath + "authors.json");
 }
 catch (error) { //JSON files failed to load; creating database from local copy in the persistent directory
     games = require("./games.json");
+    fileGames(); //HERE: for real
+}
+
+try {
+    accounts = require(dataDirectoryPath + "accounts.json");
+}
+catch (error) {
     accounts = require("./accounts.json");
+    fileAccounts(); //HERE: for real
+}
+
+try {
+    submissions = require(dataDirectoryPath + "submissions.json");
+}
+catch (error) {
     submissions = require("./submissions.json");
+    fileSubmissions(); //HERE: for real
+}
+
+try {
+    authors = require(dataDirectoryPath + "authors.json");
+}
+catch (error) {
     authors = require("./authors.json");
-    
-//    fileGames(); //HERE: for testing
-//    fileAccounts();
-//    fileSubmissions();
-//    fileAuthors();
+    fileAuthors(); //HERE: for real
 }
 
 var SOURCE_CODES = {
@@ -167,33 +181,53 @@ fs.readFile("./email_resources/addition.html", "utf-8", function(err, data) {
             });
 
 
-//SEARCH HANDLER
+//SEARCH HANDLERS
 var searchTerms = null;
 var resultNames = [];
-var resultTags = [];
+var resultTagAuthors = [];
 var resultAccounts = [];
 var resultAuthors = [];
 var result = null;
 
 var gamesByName = null;
-var gamesByTag = null;
+var gamesByTagAuthors = null;
 var accountsByAddress = null;
 var authorsByName = null;
 
 var responseObject = null;
 
-function nextGameByTag(counter,tagCounter,source) {
-    if (tagCounter < gamesByTag.length) {
+function grabAuthorLinks(gameAuthors) { //get authors.links from authors.json for games return
+    var fullAuthors = [];
+    var authorIndex = null;
+    
+    if (gameAuthors != null) {
+        for (var i=0; i<gameAuthors.length; i++) {
+            authorIndex = searchAuthors(gameAuthors[i].toLowerCase(),1);
+            
+            if (authorIndex != -1) {
+                fullAuthors.push(authors[authorIndex]);
+            }
+            else {
+                console.log("NOTICE: author " + gameAuthors[i] + " should be deleted from this game.");
+            }
+        }
+    }
+    
+    return fullAuthors;
+}
+
+function nextGameByTagAuthors(counter,tagAuthorsCounter,source) {
+    if (tagAuthorsCounter < gamesByTagAuthors.length) {
         var found = false;
         
-        for (var i=0; i<resultTags.length && !found; i++) {
-            if (resultTags[i].name == gamesByTag[tagCounter].name) {
+        for (var i=0; i<resultTagAuthors.length && !found; i++) {
+            if (resultTagAuthors[i].name == gamesByTagAuthors[tagAuthorsCounter].name) {
                 found = true;
             }
         }
         
         if (!found) {
-            fs.readFile(dataDirectoryPath + "game_icons/" + gamesByTag[tagCounter].name + ".png", function(err, data) {
+            fs.readFile(dataDirectoryPath + "game_icons/" + gamesByTagAuthors[tagAuthorsCounter].name + ".png", function(err, data) {
                         var iconData = "";
                         
                         if (err) {
@@ -204,25 +238,27 @@ function nextGameByTag(counter,tagCounter,source) {
                         }
                         
                         var game = {
-                            name: gamesByTag[tagCounter].name,
-                            authors: gamesByTag[tagCounter].authors,
-                            description: gamesByTag[tagCounter].description,
-                            tags: gamesByTag[tagCounter].tags,
-                            rating: gamesByTag[tagCounter].rating,
-                            reviews: gamesByTag[tagCounter].reviews,
-                            featured: gamesByTag[tagCounter].featured,
-                            url: gamesByTag[tagCounter].url,
+                            name: gamesByTagAuthors[tagAuthorsCounter].name,
+                            authors: gamesByTagAuthors[tagAuthorsCounter].authors,
+                            description: gamesByTagAuthors[tagAuthorsCounter].description,
+                            tags: gamesByTagAuthors[tagAuthorsCounter].tags,
+                            rating: gamesByTagAuthors[tagAuthorsCounter].rating,
+                            reviews: gamesByTagAuthors[tagAuthorsCounter].reviews,
+                            featured: gamesByTagAuthors[tagAuthorsCounter].featured,
+                            url: gamesByTagAuthors[tagAuthorsCounter].url,
                             icon: iconData
-                        }
+                        };
+                        
+                        game.authors = grabAuthorLinks(game.authors);
                         
                         console.log("\t\t" + game.name);
-                        resultTags.push(game);
+                        resultTagAuthors.push(game);
                         
-                        nextGameByTag(counter,tagCounter+1,source);
+                        nextGameByTagAuthors(counter,tagAuthorsCounter+1,source);
                         });
         }
         else {
-            nextGameByTag(counter,tagCounter+1,source);
+            nextGameByTagAuthors(counter,tagAuthorsCounter+1,source);
         }
     }
     else {
@@ -230,7 +266,7 @@ function nextGameByTag(counter,tagCounter,source) {
     }
 }
 
-function nextGameByName(counter,nameCounter,source,proceedToTags) {
+function nextGameByName(counter,nameCounter,source,proceedToTags) { //HERE: NOW: fix game searches
     if (nameCounter < gamesByName.length) {
         var found = false;
         
@@ -261,7 +297,9 @@ function nextGameByName(counter,nameCounter,source,proceedToTags) {
                             featured: gamesByName[nameCounter].featured,
                             url: gamesByName[nameCounter].url,
                             icon: iconData
-                        }
+                        };
+                        
+                        game.authors = grabAuthorLinks(game.authors);
                         
                         console.log("\t\t" + game.name);
                         resultNames.push(game);
@@ -274,8 +312,8 @@ function nextGameByName(counter,nameCounter,source,proceedToTags) {
         }
     }
     else if (proceedToTags) {
-        gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
-        nextGameByTag(counter,0,source);
+        gamesByTagAuthors= searchGamesByTagAuthors(searchTerms[counter],RESULT_MAX-resultTagAuthors.length);  //tag search
+        nextGameByTagAuthors(counter,0,source);
     }
     else {
         nextResults(counter+1,source);
@@ -283,8 +321,8 @@ function nextGameByName(counter,nameCounter,source,proceedToTags) {
 }
 
 function nextAccountByAddress(counter,accountCounter,source) {
-    console.log("\tnextAccountByAddress(): counter=" + counter + " a=" + accountCounter + " source=" + source);
     if (accountCounter < accountsByAddress.length) {
+        console.log("\tnextAccountByAddress(): counter=" + counter + " a=" + accountCounter + " source=" + source);
         var found = false;
         
         for (var i=0; i<resultAccounts.length && !found; i++) {
@@ -299,7 +337,7 @@ function nextAccountByAddress(counter,accountCounter,source) {
             nextAccountByAddress(counter,accountCounter+1,source);
         }
         else {
-            console.log("\t" + accountsByAddress[accountCounter] + " already in resultAccounts");
+            console.log("\t" + accountsByAddress[accountCounter].name + " already in resultAccounts");
             nextAccountByAddress(counter,accountCounter+1,source);
         }
     }
@@ -309,23 +347,27 @@ function nextAccountByAddress(counter,accountCounter,source) {
 }
 
 function nextAuthorByName(counter,authorCounter,source) {
-    console.log("\nextAuthorByName(): counter=" + counter + " a=" + authorCounter + " source=" + source);
     if (authorCounter < authorsByName.length) {
+        console.log("\nnextAuthorByName(): counter=" + counter + " a=" + authorCounter + " source=" + source);
         var found = false;
         
         for (var i=0; i<resultAuthors.length && !found; i++) {
             if (resultAuthors[i].name == authorsByName[authorCounter].name) {
                 found = true;
             }
+            else {
+                console.log("\tauthor " + resultAuthors[i].name + " is not " + authorsByName[authorCounter].name);
+            }
         }
         
         if (!found) {
+            console.log("\t\t" + authorsByName[authorCounter].name);
             resultAuthors.push(authorsByName[authorCounter]);
             
             nextAuthorByName(counter,authorCounter+1,source);
         }
         else {
-            console.log("\t" + authorsByName[authorCounter] + " already in resultAuthors");
+            console.log("\t" + authorsByName[authorCounter].name + " already in resultAuthors");
             nextAuthorByName(counter,authorCounter+1,source);
         }
     }
@@ -336,43 +378,37 @@ function nextAuthorByName(counter,authorCounter,source) {
 }
 
 function nextResults(counter,source) {
-    var moreTerms = false; //there are more search terms AND there is space in the results array(s)
+    var moreTerms = (counter < searchTerms.length); //there are more search terms AND there is space in the results array(s)
     
-    var moreSpace = [false,false,false,false]; //[names,tags,accounts]
+    var moreSpace = [false,false,false,false]; //[names,tags+authors,accounts,authors]
     
     if (source == SOURCE_CODES.GAMES) {
         moreSpace[0] = (resultNames.length < RESULT_MAX);
-        moreSpace[1] = (resultTags.length < RESULT_MAX);
-        
-        moreTerms = (counter < searchTerms.length);
+        moreSpace[1] = (resultTagAuthors.length < RESULT_MAX);
     }
     else if (source == SOURCE_CODES.ACCOUNTS) {
-        moreSpace[2] = (resultAccounts < RESULT_MAX);
-        
-        moreTerms = (counter < searchTerms.length);
+        moreSpace[2] = (resultAccounts.length < RESULT_MAX);
     }
     else { //source == SOURCE_CODES.AUTHORS
-        moreSpace[3] = (resultAuthors < RESULT_MAX);
-        
-        moreTerms = (counter < searchTerms.length);
+        moreSpace[3] = (resultAuthors.length < RESULT_MAX);
     }
     
-    console.log("nextResults(): counter=" + counter + " source=" + source);
-    
     if (moreTerms) {
+        console.log("nextResults(): counter=" + counter + " source=" + source);
+        
         if (searchTerms[counter].length > 0) {
             console.log("\tloading results for " + searchTerms[counter]);
             
             if (moreSpace[0]) {
-                console.log("\t" + searchTerms[counter] + " is for a game name...");
-                gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,source);  //name search
+                console.log("\t" + searchTerms[counter] + " is a game name...");
+                gamesByName = searchGamesByName(searchTerms[counter],RESULT_MAX-resultNames.length,true);  //game search by name
                 nextGameByName(counter,0,source,moreSpace[1]); //add results to resultNames (also calls tag search if moreSpace[1])
             }
             else if (moreSpace[1]) {
-                console.log("\t" + searchTerms[counter] + " is for a game tag...");
-                gamesByTag = searchGamesByTag(searchTerms[counter],RESULT_MAX-resultTags.length);  //tag search
+                console.log("\t" + searchTerms[counter] + " is a game tag/author...");
+                gamesByTagAuthors= searchGamesByTagAuthors(searchTerms[counter],RESULT_MAX-resultTagAuthors.length);  //game search by tag and author
                 
-                nextGameByTag(counter,0,source); //add results to resultTags
+                nextGameByTagAuthors(counter,0,source); //add results to resultTagAuthors
             }
             else if (moreSpace[2]) {
                 console.log("\t" + searchTerms[counter] + " is an account address...");
@@ -386,6 +422,27 @@ function nextResults(counter,source) {
                 
                 nextAuthorByName(counter,0,source); //add results to resultAuthors
             }
+            else {
+                console.log("search hit result max.");
+                
+                if (source == SOURCE_CODES.GAMES) {
+                    console.log("resultNames: " + resultNames.length);
+                    console.log("resultTagAuthors: " + resultTagAuthors.length);
+                    
+                    result.name = resultNames;
+                    result.tagAuthors = resultTagAuthors;
+                }
+                else if (source == SOURCE_CODES.ACCOUNTS) {
+                    console.log("resultAccounts: " + resultAccounts.length);
+                    result.address = resultAccounts;
+                }
+                else { // source == SOURCE_CODES.AUTHORS
+                    console.log("resultAuthors: " + resultAuthors.length);
+                    result.authors = resultAuthors;
+                }
+                
+                responseObject.send(JSON.stringify(result));
+            }
         }
         else {
             nextResults(counter+1,source);
@@ -396,10 +453,10 @@ function nextResults(counter,source) {
         
         if (source == SOURCE_CODES.GAMES) {
             console.log("resultNames: " + resultNames.length);
-            console.log("resultTags: " + resultTags.length);
+            console.log("resultTagAuthors: " + resultTagAuthors.length);
             
             result.name = resultNames;
-            result.tags = resultTags;
+            result.tagAuthors = resultTagAuthors;
         }
         else if (source == SOURCE_CODES.ACCOUNTS) {
             console.log("resultAccounts: " + resultAccounts.length);
@@ -413,17 +470,20 @@ function nextResults(counter,source) {
         responseObject.send(JSON.stringify(result));
     }
 }
+
 app.get("/search", function(request,response) {
         //search games.json by name and tags
         //HERE: unify name and tag search results
         //HERE: ...add searching by author
         searchTerms = request.query.terms;
         resultNames = [];
-        resultTags = [];
+        resultTagAuthors = [];
+        resultAuthors = [];
+        
         result = {
             message: "",
             name: [],
-            tags: []
+            tagAuthors: []
         };
         
         responseObject = response;
@@ -496,6 +556,8 @@ app.get("/featured", function(request,response) {
                                     icon: iconData //the conversion of the image to a base64 string allows the image to be transferred within a JSON message
                                 }
                                 
+                                game.authors = grabAuthorLinks(game.authors);
+                                
                                 result.games.push(game);
                                 
                                 nextResult(counter+1);
@@ -529,8 +591,9 @@ app.get("/random", function(request,response) {
                     index = Math.round(Math.random() * (games.byName.length-1));
                 }
 
-                var newGame = games.byName[index];
-                
+                var newGame = Object.assign({},games.byName[index]); //deep copy!!
+                newGame.authors = grabAuthorLinks(newGame.authors);
+        
                 fs.readFile(dataDirectoryPath + "game_icons/" + newGame.name + ".png", "base64", function(err, data) {
                             newGame.icon = "";
                             
@@ -864,7 +927,15 @@ app.get("/curate", function (request,response) {
             }
             else { //add new game submission to submissions.json
                 submission.game.id = Math.round(Math.random()*1000); //when submissions are edited, id retains identification
+        
+                for (var i=0; i<submission.game.authors.length; i++) {
+                    if (typeof submission.game.authors[i].links == "undefined") { //the empty array doesn't get passed over for some reason
+                        submission.game.authors[i].links = [];
+                    }
+                }
                 submissions.push(submission);
+        
+                console.log("New submission: " + JSON.stringify(submission));
         
                 function fail() {
                     result.message = "ERROR:write";
@@ -876,7 +947,7 @@ app.get("/curate", function (request,response) {
         
                     var emailText = "Name: " + submission.game.name + "\nURL: " + submission.game.url + "\nAuthors: ";
                     for (var i=0; i<submission.game.authors.length; i++) { //HERE: modify to include authors.links
-                        emailText += "\n\t" + submission.game.authors[i] + ": ";
+                        emailText += "\n\t" + submission.game.authors[i].name + ": ";
                         for (var j=0; j<submission.game.authors[i].links.length; j++) {
                             emailText += submission.game.authors[i].links[j] + " ";
                         }
@@ -962,6 +1033,7 @@ app.post("/accounts_replace", jsonPostParser, function(request,response) {
          }
          });
 
+//ACCOUNTS_REMOVE HANDLER
 app.get("/accounts_remove", function(request,response) {
         var result = {
             message: ""
@@ -1082,7 +1154,13 @@ app.post("/games_append", jsonPostParser, function(request,response) {
              var icon = submission.game.icon;
              delete submission.game.icon;
          
-             if (icon) {
+             var submissionAuthors = [];
+             for (var i=0; i<submission.game.authors.length; i++) {
+                 submissionAuthors.push(submission.game.authors[i]);
+                 submission.game.authors[i] = submission.game.authors[i].name;
+             }
+         
+             if (icon != null) {
                  fs.writeFile(dataDirectoryPath + "game_icons/" + submission.game.name + ".png",icon.replace(/^data:image\/png;base64,/,""),"base64",function(error) {
                                   if (error) {
                                       result.message = "ERROR:icon";
@@ -1096,62 +1174,70 @@ app.post("/games_append", jsonPostParser, function(request,response) {
                                               response.send(JSON.stringify(result));
                                           }
                                           function gamesProceed() {
-                                              //HERE: add new authors and/or add new links to existing authors. Then update authors.json
-                                              updateAuthors(submission.game.authors);
-                              
-                                              //remove old submission from submissions
-                                              var foundSubmission = -1;
-                                              for (var i=0; i<submissions.length && foundSubmission == -1; i++) {
-                                                  if (submissions[i].curator == submission.curator && submissions[i].game.url == submission.game.url) {
-                                                      submissions.splice(i,1);
-                                                      
-                                                      foundSubmission = true;
-                                                  }
-                                              }
-                                              
-                                              if (foundSubmission) { //update submissions.json
-                                                  function submissionsProceed() {
-                                                      var username = submission.curator.substring(0,submission.curator.indexOf("@"));
-                              
-                                                      var gameDescription = "";
-                                                      for (var attribute in submission.game) {
-                                                          if (submission.game.hasOwnProperty(attribute)) {
-                                                              gameDescription += attribute + ": " + submission.game[attribute] + "\n";
+                                              if (updateAuthors(submissionAuthors)) { //HERE: add new authors and/or add new links to existing authors. Then update authors.json
+                                                  function authorsProceed() {
+                                                      //remove old submission from submissions
+                                                      var foundSubmission = -1;
+                                                      for (var i=0; i<submissions.length && foundSubmission == -1; i++) {
+                                                          if (submissions[i].curator == submission.curator && submissions[i].game.url == submission.game.url) {
+                                                              submissions.splice(i,1);
+                                                              
+                                                              foundSubmission = true;
                                                           }
                                                       }
-                              
-                                                      var htmlEmail = additionEmail.replace(/\(\(username\)\)/g,username).replace(/\(\(game\)\)/g,submission.game.name).replace(/\(\(game_info\)\)/g,gameDescription.replace(/\\n/g,"<br>"));
-                              
-                                                      //send email to curator
-                                                      transporter.sendMail({
-                                                                           from: emailTemplate.from,
-                                                                           to: submission.curator,
-                                                                           subject: emailTemplate.additionSubject + submission.name,
-                                                                           text: username + ",\nThanks so much for your addition to the collection! " + submission.game.name + " was just approved for hubble and is now part of the website.\n\nWe try our best to fill in missing information about the game when we approve game submissions, so if you see any incorrect info, feel free to reply to any emails we send.\nHere's what we included in hubble about the game:\n\n" + gameDescription + "\n\nKeep them coming,\nhttp://hubblegames.site",
-                                                                           html: htmlEmail
-                                                                           },
-                                                                           function (error, info) {
-                                                                               if (error) {
-                                                                                   result.message = "ERROR:email";
-                                                                                   response.send(JSON.stringify(result));
-                                                                               }
-                                                                               else {
-                                                                                   //send confirmation to admin
-                                                                                   result.message = "SUCCESS";
-                                                                                   response.send(JSON.stringify(result));
-                                                                               }
-                                                                           });
+                                                      
+                                                      if (foundSubmission) { //update submissions.json
+                                                          function submissionsProceed() {
+                                                              var username = submission.curator.substring(0,submission.curator.indexOf("@"));
+                                      
+                                                              var gameDescription = "";
+                                                              for (var attribute in submission.game) {
+                                                                  if (submission.game.hasOwnProperty(attribute)) {
+                                                                      gameDescription += attribute + ": " + submission.game[attribute] + "\n";
+                                                                  }
+                                                              }
+                                      
+                                                              var htmlEmail = additionEmail.replace(/\(\(username\)\)/g,username).replace(/\(\(game\)\)/g,submission.game.name).replace(/\(\(game_info\)\)/g,gameDescription.replace(/\\n/g,"<br>"));
+                                      
+                                                              //send email to curator
+                                                              transporter.sendMail({
+                                                                                   from: emailTemplate.from,
+                                                                                   to: submission.curator,
+                                                                                   subject: emailTemplate.additionSubject + submission.game.name,
+                                                                                   text: username + ",\nThanks so much for your addition to the collection! " + submission.game.name + " was just approved for hubble and is now part of the website.\n\nWe try our best to fill in missing information about the game when we approve game submissions, so if you see any incorrect info, feel free to reply to any emails we send.\nHere's what we included in hubble about the game:\n\n" + gameDescription + "\n\nKeep them coming,\nhttp://hubblegames.site",
+                                                                                   html: htmlEmail
+                                                                                   },
+                                                                                   function (error, info) {
+                                                                                       if (error) {
+                                                                                           result.message = "ERROR:email";
+                                                                                           response.send(JSON.stringify(result));
+                                                                                       }
+                                                                                       else {
+                                                                                           //send confirmation to admin
+                                                                                           result.message = "SUCCESS";
+                                                                                           response.send(JSON.stringify(result));
+                                                                                       }
+                                                                                   });
+                                                          }
+                                                          function submissionsFail() {
+                                                              result.message = "ERROR:erase";
+                                                              response.send(JSON.stringify(result));
+                                                          }
+                                      
+                                                          fileSubmissions(submissionsProceed,submissionsFail);
+                                                      }
+                                                      else {
+                                                          //failed to delete old submission
+                                                          result.message = "ERROR:erase";
+                                                          response.send(JSON.stringify(result));
+                                                      }
                                                   }
-                                                  function submissionsFail() {
-                                                      result.message = "ERROR:erase";
-                                                      response.send(JSON.stringify(result));
-                                                  }
-                              
-                                                  fileSubmissions(submissionsProceed,submissionsFail);
+                                                  //update authors.json
+                                                  fileAuthors(authorsProceed,gamesFail);
                                               }
                                               else {
-                                                  //failed to delete old submission
-                                                  result.message = "ERROR:erase";
+                                                  //failed to update authors
+                                                  result.message = "ERROR:author";
                                                   response.send(JSON.stringify(result));
                                               }
                                           }
@@ -1218,6 +1304,7 @@ app.post("/games_replace", jsonPostParser, function(request,response) {
          }
          else {
              result.message = "ERROR:gone";
+             response.send(JSON.stringify(result));
          }
         });
 
@@ -1255,6 +1342,69 @@ app.get("/games_remove", function(request,response) {
              result.message = "ERROR:gone";
          }
          });
+
+//AUTHORS_REPLACE HANDLER
+app.post("/authors_replace", jsonPostParser, function(request,response) {
+        var result = {
+            message: ""
+        };
+        var newAuthor = request.body;
+        var oldAuthor = searchAuthors(newAuthor.name.toLowerCase(),1);
+        
+        if (oldAuthor != -1) {
+            console.log("Replacing author @" + oldAuthor + " with " + JSON.stringify(newAuthor));
+            authors[oldAuthor].links = Object.assign([],newAuthor.links); //HERE: author's name is immutable; Object.assign(dest,src) = guaranteed deep copy
+        
+            function proceed() {
+                result.message = "SUCCESS";
+                response.send(JSON.stringify(result));
+            }
+            function fail() {
+                result.message = "ERROR:write";
+                response.send(JSON.stringify(result));
+            }
+        
+            fileAuthors(proceed,fail);
+        }
+        else {
+            result.message = "ERROR:gone";
+            response.send(JSON.stringify(result));
+        }
+        });
+
+//AUTHORS_REMOVE HANDLER
+app.get("/authors_remove", function(request,response) {
+        var result = {
+            message: ""
+        };
+        
+        console.log("Query: " + JSON.stringify(request.query));
+        
+        var oldAuthorName = request.query.oldName;
+
+        var index = searchAuthors(oldAuthorName.toLowerCase(),1);
+        
+        console.log("Deleting author: " + JSON.stringify(request.query));
+        
+        if (index != -1) {
+            authors.splice(index,1);
+            
+            function proceed() {
+                result.message = "SUCCESS";
+                response.send(JSON.stringify(result));
+            }
+            function fail() {
+                result.message = "ERROR:write";
+                response.send(JSON.stringify(result));
+            }
+            
+            fileAuthors(proceed,fail);
+        }
+        else {
+            result.message = "ERROR:gone";
+            response.send(JSON.stringify(result));
+        }
+        });
 
 //use known domain hubblegames.site to make my other sites known: hubblegames.site/mygame
 app.get("/shuffle", function(request,response) {
@@ -1332,18 +1482,46 @@ function searchGamesByName(searchName,resultMax,completeReturn) {
     }
 }
 
-//tag search
-function searchGamesByTag(searchTag,resultMax) {
+//tag and author search
+function searchGamesByTagAuthors(searchTerm,resultMax) {
     var result = [];
+    var resultIndeces = [];
+    var tagAuthorMatch = false;
+    var testGame = null;
+    var testTag = "";
+    var testAuthor = "";
     
     for (var r=0; result.length < resultMax && r<games.byRating.length; r++) {
-        var tagMatch = false;
+        tagAuthorMatch = false;
+        testGame = games.byRating[r];
         
-        for (var t=0; !tagMatch && t<games.byRating[r].tags.length; t++) {
-            if (games.byRating[r].tags[t].indexOf(searchTag) > -1 && result.indexOf(games.byName[games.byRating[r].index]) == -1) {
-                result.push(games.byName[games.byRating[r].index]);
-                tagMatch = true;
+        for (var at=0; !tagAuthorMatch && (at<testGame.tags.length || at<testGame.authors.length); at++) {
+            if (at < testGame.tags.length) {
+                testTag = testGame.tags[at].toLowerCase();
+                
+                if (testTag.indexOf(searchTerm) > -1 && resultIndeces.indexOf(testGame.index) == -1) {
+                    console.log("\t\t" + testTag + " contains tag " + searchTerm);
+                    tagAuthorMatch = true;
+                }
             }
+            if (!tagAuthorMatch && at < testGame.authors.length) {
+                testAuthor = testGame.authors[at].toLowerCase();
+                
+                if (testAuthor.indexOf(searchTerm) > -1) {
+                    if (resultIndeces.indexOf(testGame.index) == -1) {
+                        console.log("\t\t" + testAuthor + " contains author " + searchTerm);
+                        tagAuthorMatch = true;
+                    }
+                    else {
+                        console.log("result.indexOf(" + searchTerm + ") -> " + resultIndeces.indexOf(searchTerm));
+                    }
+                }
+            }
+        }
+        
+        if (tagAuthorMatch) {
+            resultIndeces.push(testGame.index);
+            result.push(games.byName[testGame.index]);
         }
     }
     
@@ -1382,16 +1560,64 @@ function searchAccounts(searchAddress,resultMax,completeReturn) {
 //name search in authors.json
 function searchAuthors(searchName,resultMax) {
     var result = [];
+    var resultIndex = -1;
     
-    for (var i=0; result.length < resultMax && i<authors.length; i++) {
-        if (authors[i].name.indexOf(searchName) > -1) {
-            console.log("\t\t" + authors[i].name + " contains " + searchName);
-            
-            result.push(authors[i]);
+    var start = alphabet.indexOf(searchName.charAt(0));
+    start = Math.round((start / alphabet.length) * authors.length);
+    
+    var away = 0;
+    var stop = false;
+    var stopP = false;
+    var stopN = false;
+    
+    while (result.length < resultMax && !stop) {
+        if (!stopP && start+away < authors.length) {
+            if (authors[start+away].name.toLowerCase().indexOf(searchName) > -1 && result.indexOf(authors[start+away]) == -1) {
+                if (resultMax == 1) {
+                    resultIndex = start+away;
+                    stop = true;
+                }
+                else {
+                    result.push(authors[start+away]);
+                }
+            }
+        }
+        else {
+            stopP = true;
+        }
+        
+        if (away > 0 && !stop) {
+            if (!stopN && start-away >= 0) {
+                if (authors[start-away].name.toLowerCase().indexOf(searchName) > -1 && result.indexOf(authors[start-away]) == -1) {
+                    if (resultMax == 1) {
+                        resultIndex = start-away;
+                        stop = true;
+                    }
+                    else {
+                        result.push(authors[start-away]);
+                    }
+                }
+            }
+            else {
+                stopN = true;
+            }
+        }
+        
+        
+        if (start+away < authors.length-1 || start-away > 0) {
+            away++;
+        }
+        else {
+            stop = true;
         }
     }
     
-    return result;
+    if (resultMax == 1) {
+        return resultIndex;
+    }
+    else {
+        return result;
+    }
 }
 
 //the input is the index of the game to move in games.byName. This removes games.byRating[r] (where games.byRating[r].index == index) and finds a new place for it according to games.byName[index].rating
@@ -1547,10 +1773,80 @@ function addGameByRating(indexByName,rating) {
     games.byRating.splice(location,0,game); //splice(location,#_delete,[insert_1,insert_2,...])
 }
 
-//check game.authors list against authors.json to find new authors and links
+//HERE: check game.authors list against authors.json to find new authors and links
 function updateAuthors(newAuthors) {
-    //HERE: fill in authors update function
+    console.log("Adding authors: " + JSON.stringify(newAuthors));
+    var success = true;
+    var index = -1;
+    var oldAuthorLinks = null;
     
+    for (var i=0; success && i<newAuthors.length; i++) {
+        index = searchAuthors(newAuthors[i].name.toLowerCase(),1);
+        
+        if (index != -1) {
+            for (var j=0; j<newAuthors[i].links.length; j++) {
+                oldAuthorLinks = authors[index].links;
+                if (oldAuthorLinks.indexOf(newAuthors[i].links[j]) == -1) {
+                    //add new link to existing author
+                    oldAuthorLinks.push(newAuthors[i].links[j]);
+                }
+            }
+        }
+        else if (addAuthor(newAuthors[i]) == -1) { //add new author
+            success = false;
+        }
+    }
+    
+    return success;
+}
+
+//HERE: adds author to authors array maintaining lexicographical order
+function addAuthor(newAuthor) {
+    var location = alphabet.indexOf(newAuthor.name.toLowerCase().charAt(0));
+    location = Math.round(location/alphabet.length) * authors.length;
+    
+    var left = null;
+    var right = null;
+    var done = false;
+    
+    while (!done) {
+        if (location > 0) {
+            left = authors[location-1].name;
+        }
+        else {
+            left = newAuthor.name;
+        }
+        if (location < authors.length) {
+            right = authors[location].name;
+        }
+        else {
+            right = newAuthor.name;
+        }
+        
+        if (compareStrings(newAuthor.name,left) < 0) {
+            if (location > 0) {
+                location--;
+            }
+            else {
+                done = true;
+            }
+        }
+        else if (compareStrings(newAuthor.name,right) > 0) {
+            if (location < authors.length) {
+                location++;
+            }
+            else {
+                done = true;
+            }
+        }
+        else {
+            done = true;
+        }
+    }
+    
+    authors.splice(location,0,newAuthor);
+    
+    return location;
 }
 
 //update games.json to match games
