@@ -297,14 +297,19 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
         - [x] server: within searchGamesByTagAuthors, also check authors and add results to tagAuthorResults
         - [x] client: modify games.author.select() to open a search of games by that author
         - [x] client: add results by author to search bubble
-    - [x] ...server: keep games array synchronized with authors array
+    - [ ] ...server: keep games array synchronized with authors array
         - [x] game.authors pulls links from authors on demand
-        - [x] ...authors.remove() => when server tries to pull that author’s links for a game and returns null, that author is deleted from game.authors
-- [ ] server: improve password encryption
-    - [ ] picks a seed
-    - [ ] scrambles using the seed, bounded with the remainder function. The resulting characters have multiple possible original characters.
-    - [ ] appends the seed to the end of the code and stores in account.password
-    - [ ] client: encrypt passwords before sending them to the server for registration/login
+        - [ ] ...authors.remove() => when server tries to pull that author’s links for a game and returns null, that author is deleted from game.authors
+            - [ ] send admin notification delete-author-from game email 
+            - [ ] link included in email: https://HOST_NAME/games_replace?...
+- [ ] server: improve security
+    - [ ] account password encryption
+        - [ ] picks a seed
+        - [ ] scrambles using the seed, bounded with the remainder function. The resulting characters have multiple possible original characters.
+        - [ ] appends the seed to the end of the code and stores in account.password
+        - [ ] client: encrypt passwords before sending them to the server for registration/login
+    - [ ] admin access
+        - [ ] when client signs in as admin, server send back an admin token that needs to be included in every amin.edit request
 - [x] only this.bubbles.updateAnchor() if this.extension changes or window is resized
 - [x] server: fix /random handler
 - [ ] improve search functions by using the latter letters when hashing
