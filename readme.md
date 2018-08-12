@@ -324,6 +324,7 @@ A webgame host written 99% in JS, using the p5 libraries for structure and visua
 - [x] fix error: authors search with repeated results does not finish: forgot to include .length attribute for arrays
 - [x] fix error: admin.edit.author.link throws game retrieval error
 - [ ] fix error: server: games_remove handler: delete game icon as well as the game
+- [ ] fix error: server is not able to load the resources most of the time, so I can't even access the website
 
 # Notes
 - The dependencies are listed in the package-lock.json file fully so that the npm can create the node_modules folder itself. That's why I don't need to include all the dependency code in the synchronized project, just the references.

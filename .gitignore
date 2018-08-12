@@ -1,0 +1,3 @@
+#.gitignore tells git not to include the following when synchronizing the project:
+node_modules/
+
